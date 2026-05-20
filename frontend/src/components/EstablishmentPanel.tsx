@@ -24,6 +24,9 @@ export function EstablishmentPanel({ establishment, onClose, onNeedAuth }: Estab
           <p className="text-sm text-slate-400">
             {cuisineLabel(establishment.cuisine)} · {establishment.city}
           </p>
+          {establishment.address && (
+            <p className="mt-1 text-xs text-slate-500">{establishment.address}</p>
+          )}
           <p className="mt-1 text-sm text-accent-amber">★ {ratingLabel}</p>
         </div>
         <button

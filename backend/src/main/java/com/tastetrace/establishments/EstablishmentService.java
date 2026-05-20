@@ -57,7 +57,8 @@ public class EstablishmentService {
                 rating,
                 stats.count(),
                 establishment.getLatitude(),
-                establishment.getLongitude()
+                establishment.getLongitude(),
+                establishment.getAddress()
         );
     }
 

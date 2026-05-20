@@ -27,6 +27,9 @@ public class Establishment {
     @Column(nullable = false)
     private double longitude;
 
+    @Column(length = 512)
+    private String address;
+
     public Long getId() {
         return id;
     }
@@ -73,5 +76,13 @@ public class Establishment {
 
     public void setLongitude(double longitude) {
         this.longitude = longitude;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
     }
 }

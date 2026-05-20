@@ -7,4 +7,5 @@ export type Establishment = {
   reviewCount: number;
   latitude: number;
   longitude: number;
+  address?: string | null;
 };

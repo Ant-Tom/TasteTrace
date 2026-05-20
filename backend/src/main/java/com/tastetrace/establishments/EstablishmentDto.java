@@ -8,6 +8,7 @@ public record EstablishmentDto(
         double rating,
         int reviewCount,
         double latitude,
-        double longitude
+        double longitude,
+        String address
 ) {
 }

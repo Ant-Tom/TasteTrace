@@ -1,13 +1,12 @@
 export const ALL_CUISINES = "Все";
 
-const LABELS: Record<string, string> = {
-  Italian: "Итальянская",
-  Japanese: "Японская",
-  Georgian: "Грузинская",
-  Burgers: "Бургеры"
-};
-
 const COLORS: Record<string, string> = {
+  Кафе: "#38bdf8",
+  Фастфуд: "#facc15",
+  Ресторан: "#fb923c",
+  Бар: "#c084fc",
+  Паб: "#a78bfa",
+  Фудкорт: "#4ade80",
   Italian: "#fb923c",
   Japanese: "#38bdf8",
   Georgian: "#c084fc",
@@ -15,7 +14,7 @@ const COLORS: Record<string, string> = {
 };
 
 export function cuisineLabel(cuisine: string): string {
-  return LABELS[cuisine] ?? cuisine;
+  return cuisine;
 }
 
 export function cuisineColor(cuisine: string): string {

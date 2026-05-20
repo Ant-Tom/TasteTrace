@@ -23,8 +23,10 @@ def coords(name: str, addr: str) -> tuple[float, float]:
 
 def main() -> None:
     src = Path(sys.argv[1] if len(sys.argv) > 1 else "backend/src/main/resources/data/cafes_kazan.json")
+    cache_path = Path("backend/src/main/resources/data/geocode_cache.json")
     out = Path("backend/src/main/resources/db/migration/V4__seed_kazan_cafes.sql")
     data = json.loads(src.read_text(encoding="utf-8"))
+    geocode_cache: dict = json.loads(cache_path.read_text(encoding="utf-8")) if cache_path.exists() else {}
 
     seen: set[str] = set()
     rows: list[tuple[str, str, str | None, float, float]] = []

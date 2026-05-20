@@ -43,6 +43,10 @@ def main() -> None:
             full = f"{street}, {house}".strip(", ")
         category = (item.get("category") or "Кафе").strip()
         lat, lon = coords(name, full or category)
+        if full:
+            hit = geocode_cache.get(f"{full}, Казань".lower())
+            if hit:
+                lat, lon = hit["lat"], hit["lon"]
         rows.append((name, category, full or None, lat, lon))
 
     lines = [

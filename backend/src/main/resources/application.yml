@@ -18,6 +18,10 @@ spring:
   jackson:
     serialization:
       write-dates-as-timestamps: false
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
 
 server:
   port: 8080
@@ -27,6 +31,10 @@ app:
     secret: ${JWT_SECRET}
     access-expiration-minutes: ${JWT_ACCESS_EXPIRATION_MINUTES:30}
     refresh-expiration-days: ${JWT_REFRESH_EXPIRATION_DAYS:14}
+  registration:
+    rate-limit-per-hour: ${REGISTRATION_RATE_LIMIT_PER_HOUR:5}
+  review:
+    edit-window-hours: ${REVIEW_EDIT_WINDOW_HOURS:24}
   ai:
     service-base-url: ${AI_SERVICE_BASE_URL:http://localhost:8000}
   minio:

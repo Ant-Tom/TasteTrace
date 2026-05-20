@@ -5,8 +5,9 @@ public record EstablishmentDto(
         String name,
         String cuisine,
         String city,
-        Double rating,
-        Double latitude,
-        Double longitude
+        double rating,
+        int reviewCount,
+        double latitude,
+        double longitude
 ) {
 }

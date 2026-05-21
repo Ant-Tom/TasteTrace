@@ -39,8 +39,8 @@ function App() {
   }
 
   return (
-    <div className="relative flex h-full flex-col overflow-hidden bg-surface md:flex-row">
-      <div className="relative order-1 h-[50vh] min-h-[280px] flex-1 md:order-2 md:h-full">
+    <div className="relative flex h-full min-h-0 flex-col overflow-hidden bg-surface md:flex-row">
+      <div className="relative order-1 h-[50vh] min-h-[280px] min-w-0 flex-1 md:order-2 md:h-full">
         <MapView items={filtered} selectedId={selectedId} onSelect={setSelectedId} />
         <Header
           totalCount={data.length}

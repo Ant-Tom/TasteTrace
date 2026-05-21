@@ -1,0 +1,19 @@
+# Production overlay: only UI + API exposed (DB/Redis/MinIO internal).
+# Usage: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+
+services:
+  postgres:
+    ports: !reset []
+
+  redis:
+    ports: !reset []
+
+  minio:
+    ports: !reset []
+
+  ai-service:
+    ports: !reset []
+
+  backend:
+    environment:
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}

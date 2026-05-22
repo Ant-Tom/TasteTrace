@@ -1,6 +1,9 @@
 package com.tastetrace.review.dto;
 
+import com.tastetrace.review.VoteType;
+
 import java.time.Instant;
+import java.util.List;
 
 public record ReviewDto(
         Long id,
@@ -12,6 +15,10 @@ public record ReviewDto(
         Instant createdAt,
         Instant updatedAt,
         boolean canEdit,
-        boolean ownedByCurrentUser
+        boolean ownedByCurrentUser,
+        List<String> photoUrls,
+        long likeCount,
+        long dislikeCount,
+        VoteType currentUserVote
 ) {
 }

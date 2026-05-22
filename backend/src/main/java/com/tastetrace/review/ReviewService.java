@@ -5,6 +5,7 @@ import com.tastetrace.establishments.Establishment;
 import com.tastetrace.establishments.EstablishmentRepository;
 import com.tastetrace.review.dto.CreateReviewRequest;
 import com.tastetrace.review.dto.ReviewDto;
+import com.tastetrace.review.dto.ReviewReactionStatsDto;
 import com.tastetrace.review.dto.UpdateReviewRequest;
 import com.tastetrace.user.User;
 import com.tastetrace.user.UserRepository;
@@ -15,7 +16,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ReviewService {
@@ -23,24 +26,39 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final EstablishmentRepository establishmentRepository;
     private final UserRepository userRepository;
+    private final ReviewPhotoService reviewPhotoService;
+    private final ReviewReactionService reviewReactionService;
     private final int editWindowHours;
 
     public ReviewService(
             ReviewRepository reviewRepository,
             EstablishmentRepository establishmentRepository,
             UserRepository userRepository,
+            ReviewPhotoService reviewPhotoService,
+            ReviewReactionService reviewReactionService,
             AppProperties appProperties
     ) {
         this.reviewRepository = reviewRepository;
         this.establishmentRepository = establishmentRepository;
         this.userRepository = userRepository;
+        this.reviewPhotoService = reviewPhotoService;
+        this.reviewReactionService = reviewReactionService;
         this.editWindowHours = appProperties.review().editWindowHours();
     }
 
     public List<ReviewDto> listByEstablishment(Long establishmentId, Long currentUserId) {
         ensureEstablishmentExists(establishmentId);
-        return reviewRepository.findByEstablishmentIdOrderByCreatedAtDesc(establishmentId).stream()
-                .map(review -> toDto(review, currentUserId))
+        List<Review> reviews = reviewRepository.findByEstablishmentIdOrderByCreatedAtDesc(establishmentId);
+        List<Long> reviewIds = reviews.stream().map(Review::getId).toList();
+        Map<Long, List<String>> photosByReview = reviewPhotoService.photoUrlsByReviewIds(reviewIds);
+        Map<Long, ReviewReactionStatsDto> reactionsByReview = reviewReactionService.statsForReviews(reviewIds, currentUserId);
+        return reviews.stream()
+                .map(review -> toDto(
+                        review,
+                        currentUserId,
+                        photosByReview.getOrDefault(review.getId(), List.of()),
+                        reactionsByReview.get(review.getId())
+                ))
                 .toList();
     }
 
@@ -58,7 +76,7 @@ public class ReviewService {
         review.setText(request.text().trim());
         reviewRepository.save(review);
 
-        return toDto(review, userId);
+        return toDto(review, userId, Collections.emptyList(), null);
     }
 
     @Transactional
@@ -76,7 +94,12 @@ public class ReviewService {
         review.setRating(request.rating());
         review.setText(request.text().trim());
         review.setUpdatedAt(Instant.now());
-        return toDto(review, userId);
+        return toDto(
+                review,
+                userId,
+                reviewPhotoService.photoUrlsForReview(reviewId),
+                reviewReactionService.statsForReview(reviewId, userId)
+        );
     }
 
     public boolean canEdit(Review review) {
@@ -89,8 +112,16 @@ public class ReviewService {
         }
     }
 
-    private ReviewDto toDto(Review review, Long currentUserId) {
+    private ReviewDto toDto(
+            Review review,
+            Long currentUserId,
+            List<String> photoUrls,
+            ReviewReactionStatsDto reactions
+    ) {
         boolean owned = currentUserId != null && currentUserId.equals(review.getUser().getId());
+        long likes = reactions != null ? reactions.likeCount() : 0;
+        long dislikes = reactions != null ? reactions.dislikeCount() : 0;
+        VoteType userVote = reactions != null ? reactions.currentUserVote() : null;
         return new ReviewDto(
                 review.getId(),
                 review.getEstablishment().getId(),
@@ -101,7 +132,11 @@ public class ReviewService {
                 review.getCreatedAt(),
                 review.getUpdatedAt(),
                 owned && canEdit(review),
-                owned
+                owned,
+                photoUrls,
+                likes,
+                dislikes,
+                userVote
         );
     }
 }

@@ -36,4 +36,7 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     List<Object[]> aggregateAllEstablishments();
 
     Optional<Review> findByIdAndUserId(Long id, Long userId);
+
+    @Query("SELECT r FROM Review r JOIN FETCH r.user WHERE r.id = :id")
+    Optional<Review> findByIdWithUser(@Param("id") Long id);
 }

@@ -1,7 +1,13 @@
 import { useAuthStore } from "@/store/authStore";
 import type { AuthResponse, User } from "@/types/user";
 import type { Establishment } from "@/types/establishment";
-import type { Review } from "@/types/review";
+import type { Review, ReviewVote } from "@/types/review";
+
+export type ReviewReactionStats = {
+  likeCount: number;
+  dislikeCount: number;
+  currentUserVote: ReviewVote | null;
+};
 
 export function getApiBaseUrl(): string {
   const raw = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
@@ -88,5 +94,49 @@ export async function updateReview(
   return apiFetch(`/api/reviews/${reviewId}`, {
     method: "PUT",
     body: JSON.stringify(payload)
+  });
+}
+
+export function resolvePhotoUrl(path: string): string {
+  if (path.startsWith("http")) return path;
+  return `${getApiBaseUrl()}${path}`;
+}
+
+export async function uploadReviewPhotos(reviewId: number, files: File[]): Promise<string[]> {
+  const token = useAuthStore.getState().token;
+  const form = new FormData();
+  for (const file of files) {
+    form.append("files", file);
+  }
+  const headers = new Headers();
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+
+  const response = await fetch(`${getApiBaseUrl()}/api/reviews/${reviewId}/photos`, {
+    method: "POST",
+    headers,
+    body: form
+  });
+
+  if (!response.ok) {
+    let message = `HTTP ${response.status}`;
+    try {
+      const body = await response.json();
+      if (body.detail) message = body.detail;
+      else if (body.title) message = body.title;
+    } catch {
+      /* ignore */
+    }
+    throw new Error(message);
+  }
+  return response.json();
+}
+
+export async function setReviewReaction(
+  reviewId: number,
+  vote: ReviewVote
+): Promise<ReviewReactionStats> {
+  return apiFetch(`/api/reviews/${reviewId}/reaction`, {
+    method: "PUT",
+    body: JSON.stringify({ vote })
   });
 }

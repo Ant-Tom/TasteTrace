@@ -24,8 +24,12 @@ def coords(name: str, addr: str) -> tuple[float, float]:
 def main() -> None:
     src = Path(sys.argv[1] if len(sys.argv) > 1 else "backend/src/main/resources/data/cafes_kazan.json")
     cache_path = Path("backend/src/main/resources/data/geocode_cache.json")
-    out = Path("backend/src/main/resources/db/migration/V4__seed_kazan_cafes.sql")
-    data = json.loads(src.read_text(encoding="utf-8"))
+    out = Path(
+        sys.argv[2]
+        if len(sys.argv) > 2
+        else "backend/src/main/resources/db/migration/V8__refresh_kazan_2gis.sql"
+    )
+    data = json.loads(src.read_text(encoding="utf-8-sig"))
     geocode_cache: dict = json.loads(cache_path.read_text(encoding="utf-8")) if cache_path.exists() else {}
 
     seen: set[str] = set()
@@ -43,19 +47,24 @@ def main() -> None:
         full = (item.get("full_address") or "").strip()
         if not full and street:
             full = f"{street}, {house}".strip(", ")
-        category = (item.get("category") or "Кафе").strip()
-        lat, lon = coords(name, full or category)
-        if full:
-            hit = geocode_cache.get(f"{full}, Казань".lower())
-            if hit:
-                lat, lon = hit["lat"], hit["lon"]
+        category = (item.get("category") or "Кафе").strip() or "Кафе"
+        lat_raw, lon_raw = item.get("lat"), item.get("lon")
+        if lat_raw is not None and lon_raw is not None:
+            lat, lon = round(float(lat_raw), 6), round(float(lon_raw), 6)
+        else:
+            lat, lon = coords(name, full or category)
+            if full:
+                hit = geocode_cache.get(f"{full}, Казань".lower())
+                if hit:
+                    lat, lon = hit["lat"], hit["lon"]
         rows.append((name, category, full or None, lat, lon))
 
     lines = [
-        "-- Kazan cafes from cafes_kazan.json (deduplicated by name)",
+        f"-- Kazan venues from {src.name} (deduplicated by name, 2GIS coords when present)",
+        "DELETE FROM review_reactions;",
+        "DELETE FROM review_photos;",
         "DELETE FROM reviews;",
         "DELETE FROM establishments;",
-        "ALTER TABLE establishments ADD COLUMN IF NOT EXISTS address VARCHAR(512);",
         "",
         "INSERT INTO establishments (name, cuisine, city, latitude, longitude, address) VALUES",
     ]

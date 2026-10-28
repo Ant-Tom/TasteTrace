@@ -96,7 +96,7 @@ watch(
         <div
           v-for="i in 5"
           :key="i"
-          class="h-[72px] animate-pulse rounded-xl border border-border-subtle bg-surface-raised/60"
+          class="h-[72px] motion-safe:animate-pulse rounded-xl border border-border-subtle bg-surface-raised/60"
         />
       </div>
 
@@ -116,8 +116,13 @@ watch(
       </div>
 
       <ul v-else class="space-y-2">
-        <li v-for="item in visibleItems" :key="item.id" :data-id="item.id">
-          <EstablishmentCard :item="item" :selected="selectedId === item.id" :distance="distances.get(item.id)" />
+        <li v-for="(item, index) in visibleItems" :key="item.id" :data-id="item.id">
+          <EstablishmentCard
+            :item="item"
+            :index="index % PAGE_SIZE"
+            :selected="selectedId === item.id"
+            :distance="distances.get(item.id)"
+          />
         </li>
       </ul>
     </div>

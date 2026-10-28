@@ -13,6 +13,20 @@ const lightbox = useLightbox();
 
 const photos = computed(() => props.review.photoUrls ?? []);
 
+// Короткий «пульс» иконки, когда голос засчитан.
+const popped = ref<ReviewVote | null>(null);
+let popTimer: ReturnType<typeof setTimeout> | undefined;
+watch(
+  () => props.review.currentUserVote,
+  (vote) => {
+    if (!vote) return;
+    popped.value = vote;
+    clearTimeout(popTimer);
+    popTimer = setTimeout(() => (popped.value = null), 320);
+  }
+);
+onBeforeUnmount(() => clearTimeout(popTimer));
+
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString("ru-RU", {
     day: "numeric",
@@ -63,7 +77,7 @@ function formatDate(iso: string) {
           :disabled="voting"
           :aria-pressed="review.currentUserVote === 'LIKE'"
           :aria-label="`Нравится: ${review.likeCount ?? 0}`"
-          class="flex items-center gap-1 rounded-lg px-2 py-1 text-xs transition"
+          class="flex min-h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs transition active:scale-95"
           :class="
             review.currentUserVote === 'LIKE'
               ? 'bg-emerald-500/20 text-emerald-400'
@@ -71,7 +85,18 @@ function formatDate(iso: string) {
           "
           @click="$emit('vote', 'LIKE')"
         >
-          <span aria-hidden="true">👍</span>
+          <svg
+            class="h-4 w-4"
+            :class="{ 'motion-safe:animate-pop': popped === 'LIKE' }"
+            viewBox="0 0 20 20"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M7 9v8H4V9h3Zm0 0 3.2-5.6a1.6 1.6 0 0 1 3 .9L12.6 8H16a1.6 1.6 0 0 1 1.6 1.9l-1.1 5.6A1.9 1.9 0 0 1 14.6 17H7" />
+          </svg>
           <span>{{ review.likeCount ?? 0 }}</span>
         </button>
         <button
@@ -79,7 +104,7 @@ function formatDate(iso: string) {
           :disabled="voting"
           :aria-pressed="review.currentUserVote === 'DISLIKE'"
           :aria-label="`Не нравится: ${review.dislikeCount ?? 0}`"
-          class="flex items-center gap-1 rounded-lg px-2 py-1 text-xs transition"
+          class="flex min-h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs transition active:scale-95"
           :class="
             review.currentUserVote === 'DISLIKE'
               ? 'bg-red-500/20 text-red-400'
@@ -87,7 +112,21 @@ function formatDate(iso: string) {
           "
           @click="$emit('vote', 'DISLIKE')"
         >
-          <span aria-hidden="true">👎</span>
+          <svg
+            class="h-4 w-4 rotate-180"
+            viewBox="0 0 20 20"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path
+              :class="{ 'motion-safe:animate-pop': popped === 'DISLIKE' }"
+              style="transform-origin: center; transform-box: fill-box"
+              d="M7 9v8H4V9h3Zm0 0 3.2-5.6a1.6 1.6 0 0 1 3 .9L12.6 8H16a1.6 1.6 0 0 1 1.6 1.9l-1.1 5.6A1.9 1.9 0 0 1 14.6 17H7"
+            />
+          </svg>
           <span>{{ review.dislikeCount ?? 0 }}</span>
         </button>
       </div>

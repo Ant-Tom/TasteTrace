@@ -49,7 +49,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKeydown));
     <div
       v-if="state.open && current"
       ref="dialogEl"
-      class="fixed inset-0 z-[60] flex flex-col bg-black/90 backdrop-blur-sm"
+      class="fixed inset-0 z-[60] flex flex-col bg-black/90 backdrop-blur-sm motion-safe:animate-fade-in"
       role="dialog"
       aria-modal="true"
       :aria-label="state.caption || 'Фото'"
@@ -85,7 +85,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKeydown));
           :key="current"
           :src="resolvePhotoUrl(current)"
           :alt="state.caption ? `Фото: ${state.caption}` : 'Фото из отзыва'"
-          class="max-h-full max-w-full select-none rounded-lg object-contain shadow-panel"
+          class="max-h-full max-w-full select-none rounded-lg object-contain shadow-panel motion-safe:animate-dialog-in"
           draggable="false"
         >
         <button

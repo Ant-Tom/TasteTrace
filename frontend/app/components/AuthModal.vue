@@ -78,13 +78,13 @@ const inputClass =
   <Teleport to="body">
     <div
       v-if="state.open"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm motion-safe:animate-fade-in"
       @mousedown.self="close"
       @keydown="onKeydown"
     >
       <div
         ref="dialog"
-        class="glass-panel w-full max-w-md rounded-2xl p-6"
+        class="glass-panel w-full max-w-md rounded-2xl p-6 motion-safe:animate-dialog-in"
         role="dialog"
         aria-modal="true"
         aria-labelledby="auth-modal-title"

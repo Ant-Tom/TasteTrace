@@ -28,8 +28,9 @@ function select(id: number) {
 
 <template>
   <div class="relative h-full min-h-0 overflow-hidden bg-surface md:flex md:flex-row">
-    <!-- На телефоне карта на весь экран (снизу — полоска под свёрнутую шторку, где видна атрибуция карты). -->
-    <div class="absolute inset-x-0 top-0 bottom-[112px] min-w-0 md:relative md:inset-auto md:order-2 md:h-full md:flex-1">
+    <!-- На телефоне карта на весь экран, кроме полосы под свёрнутую шторку (128px = PEEK в ListSheet):
+         так и подпись карты видна, и карточка заведения не заезжает на шторку. -->
+    <div class="absolute inset-x-0 top-0 bottom-[128px] min-w-0 md:relative md:inset-auto md:order-2 md:h-full md:flex-1">
       <ClientOnly>
         <!-- Lazy: тяжёлый WebGL-движок карты грузится отдельным чанком и не задерживает список. -->
         <LazyMapView
@@ -46,15 +47,17 @@ function select(id: number) {
           </div>
         </template>
       </ClientOnly>
-      <AppHeader :total-count="data.length" :visible-count="listItems.length" :hide-on-mobile="selectedId != null" />
-      <button
-        v-if="pendingArea"
-        type="button"
-        class="absolute left-1/2 top-[76px] z-20 -translate-x-1/2 whitespace-nowrap rounded-full bg-surface-raised/95 px-4 py-2 text-sm font-medium text-accent-cyan shadow-panel ring-1 ring-accent-cyan/40 backdrop-blur transition hover:bg-surface-raised md:top-28"
-        @click="applyPending"
-      >
-        Искать в этой области
-      </button>
+      <AppHeader :hide-on-mobile="selectedId != null" />
+      <!-- Обёртка центрирует, а сама кнопка анимируется: иначе transform анимации сбил бы центровку. -->
+      <div v-if="pendingArea" class="absolute left-1/2 top-[76px] z-20 -translate-x-1/2 md:top-28">
+        <button
+          type="button"
+          class="min-h-10 whitespace-nowrap rounded-full bg-surface-raised/95 px-4 text-sm font-medium text-accent-cyan shadow-panel ring-1 ring-accent-cyan/40 backdrop-blur transition hover:bg-surface-raised active:scale-95 motion-safe:animate-slide-down"
+          @click="applyPending"
+        >
+          Искать в этой области
+        </button>
+      </div>
       <slot />
     </div>
 

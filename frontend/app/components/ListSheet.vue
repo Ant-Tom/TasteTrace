@@ -8,6 +8,7 @@ const props = defineProps<{
   collapsed: boolean;
 }>();
 
+// Синхронно с bottom-[128px] у области карты в layouts/default.vue.
 const PEEK = 128;
 const TOP_GAP = 72;
 const TAP_THRESHOLD = 6;

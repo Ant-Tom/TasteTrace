@@ -2,6 +2,7 @@
 import {
   LngLatBounds,
   MapLibreMap,
+  Marker,
   NavigationControl,
   Popup,
   setWorkerUrl,
@@ -42,6 +43,7 @@ const container = ref<HTMLElement | null>(null);
 let map: MapLibreMap | null = null;
 let loaded = false;
 let hoverPopup: Popup | null = null;
+let pulseMarker: Marker | null = null;
 let resizeObserver: ResizeObserver | null = null;
 let focusedId: number | null = null;
 
@@ -84,8 +86,31 @@ function fitToItems() {
 function syncSelected() {
   if (!loaded) return;
   const item = props.items.find((entry) => entry.id === props.selectedId);
-  source("selected")?.setData(collection(item && hasCoords(item) ? [toFeature(item)] : []));
+  const visible = item && hasCoords(item);
+  source("selected")?.setData(collection(visible ? [toFeature(item)] : []));
+  updatePulse(visible ? item : null);
   focusSelected();
+}
+
+// Пульсирующее кольцо вокруг выбранного места — обычный DOM-элемент с CSS-анимацией:
+// её считает видеокарта, и сама карта ради неё не перерисовывается (бережёт батарею).
+// При «Уменьшить движение» CSS отключает анимацию, остаётся статичный ореол слоя selected-halo.
+function updatePulse(item: Establishment | null | undefined) {
+  if (!map) return;
+  if (!item) {
+    pulseMarker?.remove();
+    return;
+  }
+  if (!pulseMarker) {
+    const wrapper = document.createElement("div");
+    wrapper.setAttribute("aria-hidden", "true");
+    wrapper.style.pointerEvents = "none";
+    const ring = document.createElement("div");
+    ring.className = "map-pulse";
+    wrapper.append(ring);
+    pulseMarker = new Marker({ element: wrapper });
+  }
+  pulseMarker.setLngLat([item.longitude, item.latitude]).addTo(map);
 }
 
 function syncUserLocation() {
@@ -151,7 +176,7 @@ function setupLayers(m: MapLibreMap) {
     type: "geojson",
     data: collection([]),
     cluster: true,
-    clusterRadius: 50,
+    clusterRadius: 60,
     clusterMaxZoom: 15
   });
   m.addSource("selected", { type: "geojson", data: collection([]) });
@@ -163,10 +188,20 @@ function setupLayers(m: MapLibreMap) {
     source: "places",
     filter: ["has", "point_count"],
     paint: {
-      "circle-color": "rgba(20, 20, 31, 0.92)",
-      "circle-stroke-color": "rgba(34, 211, 238, 0.55)",
-      "circle-stroke-width": 2,
-      "circle-radius": ["step", ["get", "point_count"], 15, 20, 19, 100, 24]
+      // Чем больше мест в кластере, тем он крупнее и насыщеннее: плотность читается с первого взгляда.
+      "circle-color": [
+        "step",
+        ["get", "point_count"],
+        "rgba(20, 20, 31, 0.92)",
+        25,
+        "rgba(12, 52, 61, 0.95)",
+        100,
+        "rgba(14, 86, 102, 0.95)"
+      ],
+      "circle-stroke-color": "rgba(34, 211, 238, 0.6)",
+      "circle-stroke-width": ["step", ["get", "point_count"], 1.5, 100, 2.5],
+      "circle-radius": ["step", ["get", "point_count"], 15, 10, 19, 25, 24, 100, 31],
+      "circle-radius-transition": { duration: 200 }
     }
   });
   m.addLayer({
@@ -177,7 +212,7 @@ function setupLayers(m: MapLibreMap) {
     layout: {
       "text-field": ["get", "point_count_abbreviated"],
       "text-font": ["Noto Sans Bold"],
-      "text-size": 12,
+      "text-size": ["step", ["get", "point_count"], 12, 100, 14],
       "text-allow-overlap": true
     },
     paint: { "text-color": "#22d3ee" }
@@ -297,6 +332,7 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   resizeObserver?.disconnect();
   hoverPopup?.remove();
+  pulseMarker?.remove();
   map?.remove();
   map = null;
   loaded = false;

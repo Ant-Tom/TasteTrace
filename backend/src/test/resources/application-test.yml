@@ -1,3 +1,6 @@
 app:
   jwt:
     secret: test-secret-for-integration-tests-only-0123456789
+  registration:
+    # Integration tests register many users from 127.0.0.1.
+    rate-limit-per-hour: 1000

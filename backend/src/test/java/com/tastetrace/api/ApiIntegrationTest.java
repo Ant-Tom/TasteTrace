@@ -2,13 +2,10 @@ package com.tastetrace.api;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tastetrace.auth.RegistrationRateLimiter;
 import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
@@ -32,13 +29,10 @@ import java.util.UUID;
 
 import static io.zonky.test.db.AutoConfigureEmbeddedDatabase.DatabaseProvider.ZONKY;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
 
 /**
  * Runs the real app (Flyway migrations, JPA, security, HTTP compression) against an embedded
- * PostgreSQL; photos go to a temporary directory. Redis is mocked: it only backs the
- * registration rate limiter.
+ * PostgreSQL; photos go to a temporary directory.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureEmbeddedDatabase(provider = ZONKY)
@@ -61,15 +55,7 @@ class ApiIntegrationTest {
         registry.add("app.storage.photos-dir", PHOTOS_DIR::toString);
     }
 
-    @MockBean
-    RegistrationRateLimiter rateLimiter;
-
     private final HttpClient http = HttpClient.newHttpClient();
-
-    @BeforeEach
-    void allowRegistrations() {
-        when(rateLimiter.tryConsume(anyString())).thenReturn(true);
-    }
 
     @Test
     void establishmentsListIsCompressedAndRevalidatedWithEtag() throws Exception {
@@ -88,6 +74,15 @@ class ApiIntegrationTest {
         );
         assertThat(second.statusCode()).isEqualTo(304);
         assertThat(second.body()).isEmpty();
+    }
+
+    @Test
+    void buildingTypesAreNotUsedAsVenueCategories() throws Exception {
+        JsonNode all = json.readTree(send(get("/api/establishments").build()).body());
+        for (JsonNode item : all) {
+            assertThat(item.get("cuisine").asText())
+                    .isNotIn("Частный дом", "Административное здание", "Ремонтируемое здание", "Объект");
+        }
     }
 
     @Test

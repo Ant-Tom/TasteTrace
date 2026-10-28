@@ -1,11 +1,8 @@
-# Production overlay: only UI + API exposed (DB/Redis internal).
+# Production overlay: only UI + API exposed (DB internal).
 # Usage: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 
 services:
   postgres:
-    ports: !reset []
-
-  redis:
     ports: !reset []
 
   backend:

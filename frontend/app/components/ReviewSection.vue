@@ -211,7 +211,7 @@ async function vote(review: Review, value: ReviewVote) {
         >
           ✓
         </div>
-        <p class="max-w-xs text-sm text-slate-200">Спасибо! Ваш отзыв отправлен на модерацию</p>
+        <p class="max-w-xs text-sm text-slate-200">Спасибо! Ваш отзыв опубликован</p>
         <button
           v-if="editableReview"
           type="button"

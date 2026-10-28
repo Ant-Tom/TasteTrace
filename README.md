@@ -11,7 +11,7 @@
 | `scripts/` | Python-скрипты, которые собирают SQL-миграции с заведениями из выгрузки 2ГИС (`scripts/data`). |
 | `deploy/` | Установка на VPS одной командой — см. [deploy/README.md](deploy/README.md). |
 
-Инфраструктура в `docker-compose.yml`: PostgreSQL (данные) и Redis (лимит регистраций). Фото отзывов лежат файлами в Docker-томе `photos_data` (вне Docker — в `backend/data/photos`).
+Инфраструктура в `docker-compose.yml`: только PostgreSQL. Фото отзывов лежат файлами в Docker-томе `photos_data` (вне Docker — в `backend/data/photos`).
 
 ## Быстрый старт
 

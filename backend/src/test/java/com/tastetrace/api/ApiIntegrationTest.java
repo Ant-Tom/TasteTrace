@@ -77,6 +77,27 @@ class ApiIntegrationTest {
     }
 
     @Test
+    void healthEndpointReportsUp() throws Exception {
+        HttpResponse<String> health = send(get("/actuator/health").build());
+        assertThat(health.statusCode()).isEqualTo(200);
+        assertThat(json.readTree(health.body()).get("status").asText()).isEqualTo("UP");
+    }
+
+    @Test
+    void repeatedWrongPasswordsAreThrottled() throws Exception {
+        String email = "victim-" + UUID.randomUUID() + "@example.test";
+        send(post("/api/auth/register", Map.of("email", email, "password", "right-password-1", "displayName", "Жертва"), null));
+
+        for (int i = 0; i < 10; i++) {
+            assertThat(send(post("/api/auth/login", Map.of("email", email, "password", "wrong-" + i), null)).statusCode())
+                    .isEqualTo(401);
+        }
+        // Even the right password is refused until the window passes.
+        assertThat(send(post("/api/auth/login", Map.of("email", email, "password", "right-password-1"), null)).statusCode())
+                .isEqualTo(429);
+    }
+
+    @Test
     void buildingTypesAreNotUsedAsVenueCategories() throws Exception {
         JsonNode all = json.readTree(send(get("/api/establishments").build()).body());
         for (JsonNode item : all) {

@@ -1,10 +1,53 @@
-# Production overlay: only UI + API exposed (DB internal).
+# Production overlay: only Caddy is reachable from outside (ports 80/443, HTTPS).
 # Usage: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 
 services:
+  caddy:
+    image: caddy:2.11-alpine
+    container_name: tastetrace-caddy
+    restart: unless-stopped
+    environment:
+      DOMAIN: ${DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      default:
+        # Fixed address, so the backend can trust X-Forwarded-For from Caddy only.
+        ipv4_address: ${PROXY_IP:-10.203.17.10}
+    depends_on:
+      - frontend
+      - backend
+
   postgres:
     ports: !reset []
+    mem_limit: 512m
 
   backend:
+    ports: !reset []
+    mem_limit: 768m
     environment:
-      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
+      CORS_ALLOWED_ORIGINS: https://${DOMAIN}
+      TRUSTED_PROXIES: ${PROXY_IP:-10.203.17.10}
+
+  frontend:
+    ports: !reset []
+    mem_limit: 384m
+    environment:
+      NUXT_PUBLIC_API_URL: https://${DOMAIN}
+
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: ${DOCKER_SUBNET:-10.203.17.0/24}
+
+volumes:
+  caddy_data:
+  caddy_config:

@@ -54,8 +54,12 @@ async function handleSubmit() {
     password.value = "";
     close();
   } catch (err) {
-    error.value =
-      mode.value === "login" && isUnauthorized(err) ? "Неверный email или пароль" : getErrorMessage(err);
+    if ((err as { statusCode?: number }).statusCode === 429) {
+      error.value = "Слишком много попыток. Попробуйте позже.";
+    } else {
+      error.value =
+        mode.value === "login" && isUnauthorized(err) ? "Неверный email или пароль" : getErrorMessage(err);
+    }
   } finally {
     loading.value = false;
   }

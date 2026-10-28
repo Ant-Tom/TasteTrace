@@ -9,7 +9,7 @@
 | `frontend/` | Сайт на Nuxt 4 (Vue 3, Pinia, Tailwind, MapLibre GL). Каждое заведение — страница `/place/:id` с серверным рендерингом. |
 | `backend/` | API на Java 21 + Spring Boot 3: авторизация (JWT + refresh-токены), заведения, отзывы, фото. Схема БД — миграции Flyway в `src/main/resources/db/migration`. |
 | `scripts/` | Python-скрипты, которые собирают SQL-миграции с заведениями из выгрузки 2ГИС (`scripts/data`). |
-| `deploy/` | Установка на VPS одной командой — см. [deploy/README.md](deploy/README.md). |
+| `deploy/` | Установка на VPS одной командой (Caddy + HTTPS), резервные копии — см. [deploy/README.md](deploy/README.md). |
 
 Инфраструктура в `docker-compose.yml`: только PostgreSQL. Фото отзывов лежат файлами в Docker-томе `photos_data` (вне Docker — в `backend/data/photos`).
 

@@ -39,7 +39,8 @@ docker run --rm \
   amazon/aws-cli:2.39.0 \
   s3 sync "s3://${BUCKET}" /dest --endpoint-url "http://${MINIO_CONTAINER}:9000" --no-progress
 
-COUNT=$(docker run --rm -v "${VOLUME}:/dest" alpine:3.20 sh -c 'find /dest -type f | wc -l')
+# The backend runs as uid 10001 (see backend/Dockerfile) and must be able to add photos.
+COUNT=$(docker run --rm -v "${VOLUME}:/dest" alpine:3.20 sh -c 'chown -R 10001:10001 /dest && find /dest -type f | wc -l')
 echo "==> Done: ${COUNT} files in ${VOLUME}."
 echo ""
 echo "Next: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build --remove-orphans"

@@ -27,6 +27,16 @@ spring:
     serialization:
       write-dates-as-timestamps: false
 
+management:
+  endpoints:
+    web:
+      # Only the liveness probe; it is not routed through Caddy, so it stays internal.
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+
 server:
   port: 8080
   compression:

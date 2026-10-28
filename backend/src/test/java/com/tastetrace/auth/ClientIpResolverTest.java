@@ -11,7 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ClientIpResolverTest {
 
     private static ClientIpResolver resolverTrusting(String... proxies) {
-        return new ClientIpResolver(new AppProperties(null, null, null, List.of(proxies)));
+        return new ClientIpResolver(new AppProperties(null, null, null, null, List.of(proxies)));
     }
 
     private static MockHttpServletRequest request(String remoteAddr, String forwardedFor) {

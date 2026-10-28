@@ -1,5 +1,3 @@
 app:
   jwt:
     secret: test-secret-for-integration-tests-only-0123456789
-  minio:
-    endpoint: http://localhost:1

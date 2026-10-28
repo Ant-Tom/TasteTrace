@@ -1,4 +1,4 @@
-# Production overlay: only UI + API exposed (DB/Redis/MinIO internal).
+# Production overlay: only UI + API exposed (DB/Redis internal).
 # Usage: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 
 services:
@@ -6,9 +6,6 @@ services:
     ports: !reset []
 
   redis:
-    ports: !reset []
-
-  minio:
     ports: !reset []
 
   backend:

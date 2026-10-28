@@ -37,3 +37,15 @@ chmod +x deploy/install.sh
 ```bash
 cd /opt/tastetrace && git pull && docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 ```
+
+### Переход с MinIO (один раз)
+
+Фото раньше хранились в MinIO, теперь — файлами в томе `photos_data`. На сервере, где уже работает старая версия:
+
+```bash
+cd /opt/tastetrace && git pull
+./deploy/migrate-photos-from-minio.sh
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build --remove-orphans
+```
+
+Когда фото на сайте открываются, старый том можно удалить: `docker volume rm tastetrace_minio_data`.

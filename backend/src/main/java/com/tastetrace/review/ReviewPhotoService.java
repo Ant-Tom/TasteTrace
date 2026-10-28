@@ -1,13 +1,6 @@
 package com.tastetrace.review;
 
 import com.tastetrace.config.AppProperties;
-import com.tastetrace.config.MinioProperties;
-import io.minio.BucketExistsArgs;
-import io.minio.GetObjectArgs;
-import io.minio.MakeBucketArgs;
-import io.minio.MinioClient;
-import io.minio.PutObjectArgs;
-import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -17,7 +10,6 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -37,40 +29,24 @@ public class ReviewPhotoService {
     private static final long MAX_FILE_BYTES = 5 * 1024 * 1024;
     private static final Set<String> ALLOWED_TYPES = Set.of("image/jpeg", "image/png", "image/webp");
 
-    private final MinioClient minioClient;
-    private final MinioProperties minioProperties;
+    private final PhotoStorage storage;
     private final ReviewRepository reviewRepository;
     private final ReviewPhotoRepository reviewPhotoRepository;
     private final ImageThumbnailer thumbnailer;
     private final int editWindowHours;
 
     public ReviewPhotoService(
-            MinioClient minioClient,
-            MinioProperties minioProperties,
+            PhotoStorage storage,
             ReviewRepository reviewRepository,
             ReviewPhotoRepository reviewPhotoRepository,
             ImageThumbnailer thumbnailer,
             AppProperties appProperties
     ) {
-        this.minioClient = minioClient;
-        this.minioProperties = minioProperties;
+        this.storage = storage;
         this.reviewRepository = reviewRepository;
         this.reviewPhotoRepository = reviewPhotoRepository;
         this.thumbnailer = thumbnailer;
         this.editWindowHours = appProperties.review().editWindowHours();
-    }
-
-    @PostConstruct
-    void ensureBucket() {
-        try {
-            String bucket = minioProperties.bucketReviews();
-            boolean exists = minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucket).build());
-            if (!exists) {
-                minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucket).build());
-            }
-        } catch (Exception e) {
-            throw new IllegalStateException("Failed to initialize MinIO bucket", e);
-        }
     }
 
     public Map<Long, List<String>> photoUrlsByReviewIds(List<Long> reviewIds) {
@@ -133,7 +109,7 @@ public class ReviewPhotoService {
     public PhotoContent loadPhoto(Long photoId) {
         ReviewPhoto photo = findPhoto(photoId);
         try {
-            return new PhotoContent(getObject(photo.getObjectKey()), photo.getContentType());
+            return new PhotoContent(storage.open(photo.getObjectKey()), photo.getContentType());
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Photo not found");
         }
@@ -148,14 +124,14 @@ public class ReviewPhotoService {
         ReviewPhoto photo = findPhoto(photoId);
         if (photo.getThumbObjectKey() != null) {
             try {
-                return new PhotoContent(getObject(photo.getThumbObjectKey()), ImageThumbnailer.CONTENT_TYPE);
+                return new PhotoContent(storage.open(photo.getThumbObjectKey()), ImageThumbnailer.CONTENT_TYPE);
             } catch (Exception e) {
                 log.warn("Thumbnail {} is missing, regenerating", photo.getThumbObjectKey());
             }
         }
 
         byte[] original;
-        try (InputStream stream = getObject(photo.getObjectKey())) {
+        try (InputStream stream = storage.open(photo.getObjectKey())) {
             original = stream.readAllBytes();
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Photo not found");
@@ -178,7 +154,7 @@ public class ReviewPhotoService {
         byte[] bytes;
         try {
             bytes = file.getBytes();
-            putObject(objectKey, bytes, file.getContentType());
+            storage.put(objectKey, bytes);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to store photo");
         }
@@ -197,33 +173,13 @@ public class ReviewPhotoService {
         try {
             byte[] thumbnail = thumbnailer.createThumbnail(original);
             String thumbKey = photo.getObjectKey() + "-thumb.jpg";
-            putObject(thumbKey, thumbnail, ImageThumbnailer.CONTENT_TYPE);
+            storage.put(thumbKey, thumbnail);
             photo.setThumbObjectKey(thumbKey);
             return thumbnail;
         } catch (Exception e) {
             log.warn("Could not create thumbnail for {}: {}", photo.getObjectKey(), e.getMessage());
             return null;
         }
-    }
-
-    private InputStream getObject(String objectKey) throws Exception {
-        return minioClient.getObject(
-                GetObjectArgs.builder()
-                        .bucket(minioProperties.bucketReviews())
-                        .object(objectKey)
-                        .build()
-        );
-    }
-
-    private void putObject(String objectKey, byte[] bytes, String contentType) throws Exception {
-        minioClient.putObject(
-                PutObjectArgs.builder()
-                        .bucket(minioProperties.bucketReviews())
-                        .object(objectKey)
-                        .stream(new ByteArrayInputStream(bytes), bytes.length, -1)
-                        .contentType(contentType)
-                        .build()
-        );
     }
 
     private void validateFile(MultipartFile file) {

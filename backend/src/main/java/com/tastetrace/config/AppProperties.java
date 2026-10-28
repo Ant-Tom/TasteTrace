@@ -9,6 +9,7 @@ public record AppProperties(
         Jwt jwt,
         Registration registration,
         Review review,
+        Storage storage,
         /** IPs of reverse proxies allowed to set X-Forwarded-For (e.g. Caddy/nginx in Docker). */
         List<String> trustedProxies
 ) {
@@ -19,5 +20,8 @@ public record AppProperties(
     }
 
     public record Review(int editWindowHours) {
+    }
+
+    public record Storage(String photosDir) {
     }
 }

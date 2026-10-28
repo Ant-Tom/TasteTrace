@@ -19,6 +19,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final RegistrationRateLimiter rateLimiter;
+    private final LoginAttemptLimiter loginAttemptLimiter;
     private final RefreshTokenService refreshTokenService;
 
     public AuthService(
@@ -26,12 +27,14 @@ public class AuthService {
             PasswordEncoder passwordEncoder,
             JwtService jwtService,
             RegistrationRateLimiter rateLimiter,
+            LoginAttemptLimiter loginAttemptLimiter,
             RefreshTokenService refreshTokenService
     ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.rateLimiter = rateLimiter;
+        this.loginAttemptLimiter = loginAttemptLimiter;
         this.refreshTokenService = refreshTokenService;
     }
 
@@ -55,14 +58,18 @@ public class AuthService {
         return buildAuthResponse(user);
     }
 
-    public AuthResponse login(LoginRequest request) {
-        User user = userRepository.findByEmailIgnoreCase(request.email().trim())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials"));
+    public AuthResponse login(LoginRequest request, String clientIp) {
+        if (loginAttemptLimiter.isBlocked(request.email(), clientIp)) {
+            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Too many login attempts, try again later");
+        }
 
-        if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
+        User user = userRepository.findByEmailIgnoreCase(request.email().trim()).orElse(null);
+        if (user == null || !passwordEncoder.matches(request.password(), user.getPasswordHash())) {
+            loginAttemptLimiter.recordFailure(request.email(), clientIp);
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
         }
 
+        loginAttemptLimiter.recordSuccess(request.email(), clientIp);
         return buildAuthResponse(user);
     }
 

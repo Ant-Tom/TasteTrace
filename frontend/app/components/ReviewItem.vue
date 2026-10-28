@@ -52,10 +52,10 @@ function formatDate(iso: string) {
       </a>
     </div>
     <div class="mt-2 flex items-center justify-between gap-2">
-      <p class="text-[10px] text-slate-500">
+      <p class="text-xs text-slate-400">
         <time :datetime="review.createdAt">{{ formatDate(review.createdAt) }}</time>
         <span v-if="review.ownedByCurrentUser && review.canEdit" class="ml-2 text-accent-cyan">· можно редактировать</span>
-        <span v-if="review.ownedByCurrentUser && !review.canEdit" class="ml-2 text-slate-600">· только новый отзыв</span>
+        <span v-if="review.ownedByCurrentUser && !review.canEdit" class="ml-2 text-slate-500">· только новый отзыв</span>
       </p>
       <div v-if="!review.ownedByCurrentUser" class="flex shrink-0 items-center gap-1">
         <button
@@ -67,7 +67,7 @@ function formatDate(iso: string) {
           :class="
             review.currentUserVote === 'LIKE'
               ? 'bg-emerald-500/20 text-emerald-400'
-              : 'text-slate-500 hover:bg-surface-raised hover:text-emerald-400'
+              : 'text-slate-400 hover:bg-surface-raised hover:text-emerald-400'
           "
           @click="$emit('vote', 'LIKE')"
         >
@@ -83,7 +83,7 @@ function formatDate(iso: string) {
           :class="
             review.currentUserVote === 'DISLIKE'
               ? 'bg-red-500/20 text-red-400'
-              : 'text-slate-500 hover:bg-surface-raised hover:text-red-400'
+              : 'text-slate-400 hover:bg-surface-raised hover:text-red-400'
           "
           @click="$emit('vote', 'DISLIKE')"
         >

@@ -50,7 +50,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKeydown));
       <div>
         <h1 class="font-display text-lg font-bold text-white">{{ establishment.name }}</h1>
         <p class="text-sm text-slate-400">{{ [establishment.cuisine, establishment.city].filter(Boolean).join(" · ") }}</p>
-        <p v-if="establishment.address" class="mt-1 text-xs text-slate-500">{{ establishment.address }}</p>
+        <p v-if="establishment.address" class="mt-1 text-xs text-slate-400">{{ establishment.address }}</p>
         <div class="mt-1 flex items-center gap-3">
           <p class="text-sm text-accent-amber">★ {{ ratingLabel }}</p>
           <ClientOnly>

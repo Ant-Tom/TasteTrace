@@ -43,7 +43,7 @@ const chipClass = (active: boolean) =>
   <div class="space-y-3 border-b border-border-subtle px-4 py-4">
     <div class="relative">
       <svg
-        class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"
+        class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
         viewBox="0 0 20 20"
         fill="none"
         stroke="currentColor"
@@ -57,7 +57,7 @@ const chipClass = (active: boolean) =>
         v-model="draft"
         type="search"
         aria-label="Поиск заведений"
-        class="w-full rounded-xl border border-border-subtle bg-surface-raised/80 py-2.5 pl-9 pr-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-accent-cyan/50 focus:shadow-glow"
+        class="w-full rounded-xl border border-border-subtle bg-surface-raised/80 py-2.5 pl-9 pr-3 text-sm text-white outline-none transition placeholder:text-slate-400 focus:border-accent-cyan/50 focus:shadow-glow"
         placeholder="Поиск по названию, кухне, адресу..."
       >
     </div>

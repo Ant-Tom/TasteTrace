@@ -24,15 +24,15 @@ const ratingText = computed(() => {
 useSeoMeta({
   title: () => {
     const item = establishment.value;
-    if (!item) return "Заведение не найдено | TasteTrace";
-    return `${item.name} — ${[item.cuisine, item.city].filter(Boolean).join(", ")} | TasteTrace`;
+    if (!item) return "Заведение не найдено | Где поесть";
+    return `${item.name} — ${[item.cuisine, item.city].filter(Boolean).join(", ")} | Где поесть`;
   },
-  ogTitle: () => establishment.value?.name ?? "TasteTrace",
+  ogTitle: () => establishment.value?.name ?? "Где поесть",
   description: () => {
     const item = establishment.value;
     if (!item) return "Заведение не найдено на гастрокарте Казани.";
     const details = [item.cuisine.toLowerCase(), item.address].filter(Boolean).join(", ");
-    return `${item.name}${details ? ` (${details})` : ""}: ${ratingText.value}. Отзывы и фото на TasteTrace.`;
+    return `${item.name}${details ? ` (${details})` : ""}: ${ratingText.value}. Отзывы и фото — «Где поесть».`;
   },
   ogDescription: () => (establishment.value ? `${establishment.value.cuisine} · ${ratingText.value}` : undefined),
   robots: () => (establishment.value ? undefined : "noindex")

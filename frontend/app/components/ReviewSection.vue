@@ -178,7 +178,7 @@ async function vote(review: Review, value: ReviewVote) {
       Отзывы ({{ reviews.length }})
     </h2>
 
-    <p v-if="status === 'pending' && reviews.length === 0" class="text-sm text-slate-500">Загрузка отзывов...</p>
+    <p v-if="status === 'pending' && reviews.length === 0" class="text-sm text-slate-400">Загрузка отзывов...</p>
     <p v-else-if="status === 'error'" class="text-sm text-red-400">Не удалось загрузить отзывы.</p>
 
     <ul class="space-y-2">
@@ -190,7 +190,7 @@ async function vote(review: Review, value: ReviewVote) {
         @vote="(value) => vote(review, value)"
       />
     </ul>
-    <p v-if="status === 'success' && reviews.length === 0" class="text-sm text-slate-500">
+    <p v-if="status === 'success' && reviews.length === 0" class="text-sm text-slate-400">
       Пока нет отзывов. Будьте первым.
     </p>
 
@@ -211,7 +211,7 @@ async function vote(review: Review, value: ReviewVote) {
         >
           ✓
         </div>
-        <p class="max-w-xs text-sm text-slate-200">Спасибо! Ваш отзыв отправлен на модерацию</p>
+        <p class="max-w-xs text-sm text-slate-200">Спасибо! Ваш отзыв опубликован</p>
         <button
           v-if="editableReview"
           type="button"
@@ -223,7 +223,7 @@ async function vote(review: Review, value: ReviewVote) {
       </div>
 
       <form v-else class="space-y-2" @submit.prevent="handleSubmit">
-        <p class="text-xs text-slate-500">
+        <p class="text-xs text-slate-400">
           {{
             editingId != null
               ? `Редактирование (доступно 24 ч с момента публикации). Вы: ${auth.user?.displayName}`
@@ -239,7 +239,7 @@ async function vote(review: Review, value: ReviewVote) {
             :aria-checked="rating === star"
             :aria-label="`${star} из 5`"
             class="text-lg transition"
-            :class="star <= rating ? 'text-accent-amber' : 'text-slate-600'"
+            :class="star <= rating ? 'text-accent-amber' : 'text-slate-500'"
             @click="rating = star"
           >
             ★
@@ -257,7 +257,7 @@ async function vote(review: Review, value: ReviewVote) {
         />
         <div class="flex justify-between gap-2 text-xs">
           <p v-if="textHint" class="text-accent-amber/90">{{ textHint }}</p>
-          <span class="ml-auto shrink-0 text-slate-600">{{ text.length }}/2000</span>
+          <span class="ml-auto shrink-0 text-slate-500">{{ text.length }}/2000</span>
         </div>
 
         <div v-if="showPhotoPicker || totalPhotoCount > 0" class="space-y-2">

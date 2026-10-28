@@ -28,18 +28,18 @@ function logout() {
     <div
       class="glass-panel pointer-events-auto flex w-full max-w-6xl items-center justify-between gap-3 rounded-2xl px-4 py-2.5 md:px-6 md:py-3"
     >
-      <NuxtLink to="/" class="block" aria-label="TasteTrace — на главную">
+      <NuxtLink to="/" class="block" aria-label="Где поесть — на главную">
         <p class="font-display text-lg font-bold tracking-tight text-white md:text-xl">
-          Taste<span class="text-accent-cyan">Trace</span>
+          Где <span class="text-accent-cyan">поесть</span>
         </p>
-        <p class="hidden text-xs text-slate-400 sm:block md:text-sm">Гастрокарта Казани</p>
+        <p class="hidden text-xs text-slate-400 sm:block md:text-sm">в Казани</p>
       </NuxtLink>
       <div class="flex items-center gap-3">
         <div class="hidden text-right sm:block" aria-live="polite">
-          <p class="text-xs uppercase tracking-widest text-slate-500">Заведений</p>
+          <p class="text-xs uppercase tracking-widest text-slate-400">Заведений</p>
           <p class="font-display text-sm font-semibold text-white">
             <span class="text-accent-cyan">{{ visibleCount }}</span>
-            <span class="text-slate-500"> / {{ totalCount }}</span>
+            <span class="text-slate-400"> / {{ totalCount }}</span>
           </p>
         </div>
         <ClientOnly>

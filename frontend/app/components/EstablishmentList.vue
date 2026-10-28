@@ -62,7 +62,7 @@ watch(
 
 <template>
   <aside
-    class="glass-panel flex h-full min-h-0 flex-col rounded-none border-y-0 border-l-0 md:rounded-r-2xl md:border md:border-l-0"
+    class="glass-panel flex h-full min-h-0 flex-col rounded-none border-x-0 border-b-0 md:rounded-r-2xl md:border md:border-l-0"
     aria-label="Список заведений"
   >
     <FilterBar
@@ -74,7 +74,7 @@ watch(
     />
 
     <div class="flex items-center justify-between px-4 py-2">
-      <p class="text-xs font-medium uppercase tracking-wider text-slate-500">
+      <p class="text-xs font-medium uppercase tracking-wider text-slate-400">
         {{ sortByDistance ? "Ближайшие" : "Список · Казань" }}
       </p>
       <p class="text-xs text-slate-400">{{ items.length }} из {{ totalCount }}</p>
@@ -98,7 +98,7 @@ watch(
 
       <div
         v-else-if="items.length === 0"
-        class="rounded-xl border border-dashed border-border-subtle px-3 py-8 text-center text-sm text-slate-500"
+        class="rounded-xl border border-dashed border-border-subtle px-3 py-8 text-center text-sm text-slate-400"
       >
         <p>По фильтрам ничего не найдено.</p>
         <button type="button" class="mt-2 text-accent-cyan underline" @click="emit('reset')">Сбросить фильтры</button>

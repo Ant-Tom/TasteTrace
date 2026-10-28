@@ -1,9 +1,6 @@
 .env
 node_modules/
-frontend/dist/
-frontend/.nuxt/
-frontend/.output/
 backend/target/
-*.tsbuildinfo
+backend/data/
 .DS_Store
 .idea/

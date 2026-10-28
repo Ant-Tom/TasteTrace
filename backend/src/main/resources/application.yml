@@ -3,7 +3,7 @@ spring:
     name: tastetrace-backend
   threads:
     virtual:
-      # Java 21 virtual threads: blocking JDBC/MinIO calls no longer pin a platform thread each.
+      # Java 21 virtual threads: blocking JDBC and file I/O no longer pin a platform thread each.
       enabled: true
   servlet:
     multipart:
@@ -26,10 +26,16 @@ spring:
   jackson:
     serialization:
       write-dates-as-timestamps: false
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
+
+management:
+  endpoints:
+    web:
+      # Only the liveness probe; it is not routed through Caddy, so it stays internal.
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
 
 server:
   port: 8080
@@ -45,14 +51,12 @@ app:
     secret: ${JWT_SECRET}
     access-expiration-minutes: ${JWT_ACCESS_EXPIRATION_MINUTES:30}
     refresh-expiration-days: ${JWT_REFRESH_EXPIRATION_DAYS:14}
+  # Comma-separated IPs of your reverse proxy; empty = ignore X-Forwarded-For.
+  trusted-proxies: ${TRUSTED_PROXIES:}
   registration:
     rate-limit-per-hour: ${REGISTRATION_RATE_LIMIT_PER_HOUR:5}
   review:
     edit-window-hours: ${REVIEW_EDIT_WINDOW_HOURS:24}
-  ai:
-    service-base-url: ${AI_SERVICE_BASE_URL:http://localhost:8000}
-  minio:
-    endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
-    access-key: ${MINIO_ACCESS_KEY:minioadmin}
-    secret-key: ${MINIO_SECRET_KEY:minioadmin123}
-    bucket-reviews: ${MINIO_BUCKET_REVIEWS:review-photos}
+  storage:
+    # Photos are plain files; in Docker this is the photos_data volume.
+    photos-dir: ${PHOTOS_DIR:./data/photos}

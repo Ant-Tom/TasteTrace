@@ -2,42 +2,37 @@ package com.tastetrace.api;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tastetrace.auth.RegistrationRateLimiter;
-import io.minio.MinioClient;
-import io.minio.PutObjectArgs;
 import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.UUID;
 
 import static io.zonky.test.db.AutoConfigureEmbeddedDatabase.DatabaseProvider.ZONKY;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.atLeast;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /**
  * Runs the real app (Flyway migrations, JPA, security, HTTP compression) against an embedded
- * PostgreSQL. MinIO and Redis are mocked: they are infrastructure, not the logic under test.
+ * PostgreSQL; photos go to a temporary directory.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureEmbeddedDatabase(provider = ZONKY)
@@ -53,18 +48,14 @@ class ApiIntegrationTest {
     @Autowired
     JdbcTemplate jdbc;
 
-    @MockBean
-    MinioClient minioClient;
+    static final Path PHOTOS_DIR = createPhotosDir();
 
-    @MockBean
-    RegistrationRateLimiter rateLimiter;
+    @DynamicPropertySource
+    static void storage(DynamicPropertyRegistry registry) {
+        registry.add("app.storage.photos-dir", PHOTOS_DIR::toString);
+    }
 
     private final HttpClient http = HttpClient.newHttpClient();
-
-    @BeforeEach
-    void allowRegistrations() {
-        when(rateLimiter.tryConsume(anyString())).thenReturn(true);
-    }
 
     @Test
     void establishmentsListIsCompressedAndRevalidatedWithEtag() throws Exception {
@@ -83,6 +74,36 @@ class ApiIntegrationTest {
         );
         assertThat(second.statusCode()).isEqualTo(304);
         assertThat(second.body()).isEmpty();
+    }
+
+    @Test
+    void healthEndpointReportsUp() throws Exception {
+        HttpResponse<String> health = send(get("/actuator/health").build());
+        assertThat(health.statusCode()).isEqualTo(200);
+        assertThat(json.readTree(health.body()).get("status").asText()).isEqualTo("UP");
+    }
+
+    @Test
+    void repeatedWrongPasswordsAreThrottled() throws Exception {
+        String email = "victim-" + UUID.randomUUID() + "@example.test";
+        send(post("/api/auth/register", Map.of("email", email, "password", "right-password-1", "displayName", "Жертва"), null));
+
+        for (int i = 0; i < 10; i++) {
+            assertThat(send(post("/api/auth/login", Map.of("email", email, "password", "wrong-" + i), null)).statusCode())
+                    .isEqualTo(401);
+        }
+        // Even the right password is refused until the window passes.
+        assertThat(send(post("/api/auth/login", Map.of("email", email, "password", "right-password-1"), null)).statusCode())
+                .isEqualTo(429);
+    }
+
+    @Test
+    void buildingTypesAreNotUsedAsVenueCategories() throws Exception {
+        JsonNode all = json.readTree(send(get("/api/establishments").build()).body());
+        for (JsonNode item : all) {
+            assertThat(item.get("cuisine").asText())
+                    .isNotIn("Частный дом", "Административное здание", "Ремонтируемое здание", "Объект");
+        }
     }
 
     @Test
@@ -150,7 +171,7 @@ class ApiIntegrationTest {
     }
 
     @Test
-    void photoUploadStoresOriginalAndPreview() throws Exception {
+    void photoUploadStoresOriginalAndServesPreview() throws Exception {
         long establishmentId = firstEstablishmentId();
         String token = register().get("accessToken").asText();
         long reviewId = json.readTree(send(post(
@@ -165,11 +186,23 @@ class ApiIntegrationTest {
 
         HttpResponse<String> upload = send(multipart("/api/reviews/" + reviewId + "/photos", jpeg.toByteArray(), token));
         assertThat(upload.statusCode()).isEqualTo(200);
+        String photoUrl = json.readTree(upload.body()).get(0).asText();
 
-        ArgumentCaptor<PutObjectArgs> puts = ArgumentCaptor.forClass(PutObjectArgs.class);
-        verify(minioClient, atLeast(2)).putObject(puts.capture());
-        List<String> keys = puts.getAllValues().stream().map(PutObjectArgs::object).toList();
-        assertThat(keys).anyMatch(key -> key.startsWith("reviews/" + reviewId + "/") && key.endsWith("-thumb.jpg"));
+        try (var files = Files.list(PHOTOS_DIR.resolve("reviews/" + reviewId))) {
+            assertThat(files.map(path -> path.getFileName().toString()))
+                    .hasSize(2)
+                    .anyMatch(name -> name.endsWith("-thumb.jpg"));
+        }
+
+        HttpResponse<byte[]> original = http.send(get(photoUrl).build(), HttpResponse.BodyHandlers.ofByteArray());
+        assertThat(original.statusCode()).isEqualTo(200);
+        assertThat(original.body()).isEqualTo(jpeg.toByteArray());
+
+        HttpResponse<byte[]> thumb = http.send(get(photoUrl + "/thumb").build(), HttpResponse.BodyHandlers.ofByteArray());
+        assertThat(thumb.statusCode()).isEqualTo(200);
+        assertThat(thumb.headers().firstValue("Cache-Control").orElse("")).contains("immutable");
+        BufferedImage preview = ImageIO.read(new ByteArrayInputStream(thumb.body()));
+        assertThat(Math.max(preview.getWidth(), preview.getHeight())).isLessThanOrEqualTo(480);
     }
 
     private long firstEstablishmentId() throws Exception {
@@ -222,6 +255,14 @@ class ApiIntegrationTest {
                 .header("Content-Type", "multipart/form-data; boundary=" + boundary)
                 .POST(HttpRequest.BodyPublishers.ofByteArray(body.toByteArray()))
                 .build();
+    }
+
+    private static Path createPhotosDir() {
+        try {
+            return Files.createTempDirectory("tastetrace-photos");
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     private HttpResponse<String> send(HttpRequest request) throws Exception {

@@ -11,8 +11,8 @@ from urllib.parse import quote
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / "backend/src/main/resources/data/cafes_kazan.json"
-CACHE = ROOT / "backend/src/main/resources/data/geocode_cache.json"
+SRC = ROOT / "scripts/data/cafes_kazan.json"
+CACHE = ROOT / "scripts/data/geocode_cache.json"
 OUT = ROOT / "backend/src/main/resources/db/migration/V5__geocode_establishments.sql"
 
 KAZAN_LAT, KAZAN_LON = 55.7961, 49.1064

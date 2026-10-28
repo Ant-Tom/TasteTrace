@@ -20,18 +20,20 @@ function select(id: number) {
 </script>
 
 <template>
-  <div class="relative flex h-full min-h-0 flex-col overflow-hidden bg-surface md:flex-row">
-    <div class="relative order-1 h-[50vh] min-h-[280px] min-w-0 flex-1 md:order-2 md:h-full">
+  <div class="relative h-full min-h-0 overflow-hidden bg-surface md:flex md:flex-row">
+    <!-- На телефоне карта на весь экран (снизу — полоска под свёрнутую шторку, где видна атрибуция карты). -->
+    <div class="absolute inset-x-0 top-0 bottom-[112px] min-w-0 md:relative md:inset-auto md:order-2 md:h-full md:flex-1">
       <ClientOnly>
         <!-- Lazy: тяжёлый WebGL-движок карты грузится отдельным чанком и не задерживает список. -->
         <LazyMapView
           :items="filtered"
-          :selected-id="selectedId" :user-location="userLocation"
+          :selected-id="selectedId"
+          :user-location="userLocation"
           :filters-active="filtersActive"
           @select="select"
         />
         <template #fallback>
-          <div class="absolute inset-0 flex items-center justify-center bg-surface text-sm text-slate-500">
+          <div class="absolute inset-0 flex items-center justify-center bg-surface text-sm text-slate-400">
             Загрузка карты...
           </div>
         </template>
@@ -40,12 +42,7 @@ function select(id: number) {
       <slot />
     </div>
 
-    <div
-      class="relative z-10 order-2 h-[50vh] min-h-0 w-full shrink-0 md:order-1 md:h-full md:w-[min(420px,38vw)] md:max-w-md"
-    >
-      <div class="absolute -top-3 left-0 right-0 z-10 flex justify-center md:hidden">
-        <span class="h-1 w-10 rounded-full bg-slate-600" aria-hidden="true" />
-      </div>
+    <ListSheet :collapsed="selectedId != null">
       <EstablishmentList
         v-model:query="query"
         v-model:cuisine="cuisine"
@@ -60,7 +57,7 @@ function select(id: number) {
         :is-error="isError"
         @reset="resetFilters"
       />
-    </div>
+    </ListSheet>
 
     <AuthModal />
     <PhotoLightbox />

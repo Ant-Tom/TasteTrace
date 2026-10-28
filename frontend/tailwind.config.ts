@@ -1,7 +1,7 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  content: ["./index.html", "./src/**/*.{ts,tsx}"],
+  content: ["./app/**/*.{vue,ts}"],
   theme: {
     extend: {
       colors: {

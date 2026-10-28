@@ -281,7 +281,7 @@ async function vote(review: Review, value: ReviewVote) {
             <img
               v-for="url in editingReview?.photoUrls ?? []"
               :key="url"
-              :src="resolvePhotoUrl(url)"
+              :src="resolvePhotoUrl(url, 'thumb')"
               alt="Фото из отзыва"
               class="h-14 w-14 rounded-lg object-cover"
             >

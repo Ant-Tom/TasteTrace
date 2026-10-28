@@ -44,7 +44,7 @@ function formatDate(iso: string) {
         @click.exact.prevent="lightbox.open(photos, index, review.authorName)"
       >
         <img
-          :src="resolvePhotoUrl(url)"
+          :src="resolvePhotoUrl(url, 'thumb')"
           :alt="`Фото от ${review.authorName}`"
           loading="lazy"
           class="h-14 w-14 rounded-md object-cover"

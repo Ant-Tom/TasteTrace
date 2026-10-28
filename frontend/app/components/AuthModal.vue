@@ -50,7 +50,7 @@ async function handleSubmit() {
               website: website.value
             }
           });
-    auth.setAuth(response.accessToken, response.user);
+    auth.setAuth(response.accessToken, response.refreshToken, response.user);
     password.value = "";
     close();
   } catch (err) {

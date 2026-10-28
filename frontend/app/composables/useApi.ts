@@ -1,4 +1,7 @@
 import type { FetchError } from "ofetch";
+import type { AuthResponse } from "~/types/user";
+
+type FetchOptions = NonNullable<Parameters<typeof $fetch>[1]>;
 
 function trimBaseUrl(raw: string): string {
   return raw.replace(/\/+$/, "").replace(/\/api$/, "");
@@ -20,26 +23,67 @@ function useRequestApiUrl(): string {
 
 export function useApi() {
   const auth = useAuthStore();
+  const nuxtApp = useNuxtApp();
 
-  return $fetch.create({
+  const raw = $fetch.create({
     baseURL: useRequestApiUrl(),
     onRequest({ options }) {
       if (auth.token) {
         options.headers.set("Authorization", `Bearer ${auth.token}`);
       }
-    },
-    onResponseError({ response, options }) {
-      // Токен истёк или отозван — выходим, чтобы интерфейс не застревал в «полузалогиненном» состоянии.
-      if (response.status === 401 && options.headers.has("Authorization")) {
-        auth.logout();
-      }
     }
   });
+
+  // Один запрос продления на всё приложение: если сразу несколько вызовов получили 401,
+  // они дождутся общего результата, а не потратят refresh-токен несколько раз.
+  // Промис хранится в nuxtApp, а не в модуле, чтобы при SSR не смешивались разные пользователи.
+  function refreshSession(): Promise<boolean> {
+    const state = nuxtApp as typeof nuxtApp & { _ttRefresh?: Promise<boolean> };
+    state._ttRefresh ??= (async () => {
+      const usedToken = auth.refreshToken;
+      if (!usedToken) return false;
+      try {
+        const response = await raw<AuthResponse>("/api/auth/refresh", {
+          method: "POST",
+          body: { refreshToken: usedToken }
+        });
+        auth.setAuth(response.accessToken, response.refreshToken, response.user);
+        return true;
+      } catch {
+        if (import.meta.client) {
+          auth.reloadFromCookies();
+          if (auth.refreshToken && auth.refreshToken !== usedToken) return true;
+        }
+        return false;
+      }
+    })().finally(() => {
+      state._ttRefresh = undefined;
+    });
+    return state._ttRefresh;
+  }
+
+  return async function api<T>(url: string, options: FetchOptions = {}): Promise<T> {
+    const hadToken = !!auth.token;
+    try {
+      return (await raw<T>(url, options as never)) as T;
+    } catch (error) {
+      // Access-токен истёк — тихо продлеваем сессию и повторяем запрос один раз.
+      if (!hadToken || !isUnauthorized(error)) throw error;
+      if (await refreshSession()) {
+        return (await raw<T>(url, options as never)) as T;
+      }
+      auth.logout();
+      throw error;
+    }
+  };
 }
 
 export function useResolvePhotoUrl() {
   const base = usePublicApiUrl();
-  return (path: string) => (/^https?:\/\//.test(path) ? path : `${base}${path}`);
+  return (path: string, size: "full" | "thumb" = "full") => {
+    const url = /^https?:\/\//.test(path) ? path : `${base}${path}`;
+    return size === "thumb" ? `${url}/thumb` : url;
+  };
 }
 
 export function isUnauthorized(error: unknown): boolean {

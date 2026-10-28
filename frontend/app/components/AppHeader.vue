@@ -8,6 +8,16 @@ defineProps<{
 
 const auth = useAuthStore();
 const authModal = useAuthModal();
+const api = useApi();
+
+function logout() {
+  const refreshToken = auth.refreshToken;
+  auth.logout();
+  // Отзываем refresh-токен на сервере, но не заставляем пользователя ждать ответа.
+  if (refreshToken) {
+    api("/api/auth/logout", { method: "POST", body: { refreshToken } }).catch(() => {});
+  }
+}
 </script>
 
 <template>
@@ -38,7 +48,7 @@ const authModal = useAuthModal();
             <button
               type="button"
               class="rounded-lg border border-border-subtle px-3 py-1.5 text-xs text-slate-300 hover:text-white"
-              @click="auth.logout()"
+              @click="logout"
             >
               Выйти
             </button>

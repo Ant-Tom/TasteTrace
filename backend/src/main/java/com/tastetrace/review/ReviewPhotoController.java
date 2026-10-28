@@ -2,7 +2,7 @@ package com.tastetrace.review;
 
 import com.tastetrace.auth.AuthUserPrincipal;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.http.HttpHeaders;
+import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.Duration;
 import java.util.List;
 
 @RestController
@@ -37,9 +38,18 @@ public class ReviewPhotoController {
 
     @GetMapping("/photos/{photoId}")
     public ResponseEntity<InputStreamResource> download(@PathVariable Long photoId) {
-        ReviewPhotoService.PhotoContent content = reviewPhotoService.loadPhoto(photoId);
+        return serve(reviewPhotoService.loadPhoto(photoId));
+    }
+
+    @GetMapping("/photos/{photoId}/thumb")
+    public ResponseEntity<InputStreamResource> thumbnail(@PathVariable Long photoId) {
+        return serve(reviewPhotoService.loadThumbnail(photoId));
+    }
+
+    /** A photo id never points to different bytes, so browsers and CDNs may cache it forever. */
+    private ResponseEntity<InputStreamResource> serve(ReviewPhotoService.PhotoContent content) {
         return ResponseEntity.ok()
-                .header(HttpHeaders.CACHE_CONTROL, "public, max-age=86400")
+                .cacheControl(CacheControl.maxAge(Duration.ofDays(365)).cachePublic().immutable())
                 .contentType(MediaType.parseMediaType(content.contentType()))
                 .body(new InputStreamResource(content.stream()));
     }

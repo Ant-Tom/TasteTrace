@@ -2,6 +2,7 @@ package com.tastetrace.auth;
 
 import com.tastetrace.auth.dto.AuthResponse;
 import com.tastetrace.auth.dto.LoginRequest;
+import com.tastetrace.auth.dto.RefreshRequest;
 import com.tastetrace.auth.dto.RegisterRequest;
 import com.tastetrace.auth.dto.UserResponse;
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,6 +35,17 @@ public class AuthController {
     @PostMapping("/login")
     public AuthResponse login(@Valid @RequestBody LoginRequest request) {
         return authService.login(request);
+    }
+
+    @PostMapping("/refresh")
+    public AuthResponse refresh(@Valid @RequestBody RefreshRequest request) {
+        return authService.refresh(request.refreshToken());
+    }
+
+    @PostMapping("/logout")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void logout(@Valid @RequestBody RefreshRequest request) {
+        authService.logout(request.refreshToken());
     }
 
     @GetMapping("/me")

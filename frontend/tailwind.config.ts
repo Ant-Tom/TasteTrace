@@ -19,8 +19,9 @@ const config: Config = {
         }
       },
       fontFamily: {
-        display: ['"Syne"', "system-ui", "sans-serif"],
-        sans: ['"DM Sans"', "system-ui", "sans-serif"]
+        // Both faces cover Cyrillic, so the whole Russian UI renders in the brand fonts.
+        display: ['"Unbounded"', "system-ui", "sans-serif"],
+        sans: ['"IBM Plex Sans"', "system-ui", "sans-serif"]
       },
       boxShadow: {
         glow: "0 0 24px rgba(34, 211, 238, 0.25)",

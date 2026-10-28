@@ -41,8 +41,8 @@ const accent = computed(() => cuisineColor(props.item.cuisine));
     </div>
     <div class="mt-2 flex items-center justify-between">
       <RatingStars v-if="item.reviewCount > 0" :rating="item.rating" />
-      <span v-else class="text-xs text-slate-500">Нет отзывов</span>
-      <span class="text-[10px] uppercase tracking-wider text-slate-500">
+      <span v-else class="text-xs text-slate-400">Нет отзывов</span>
+      <span class="text-xs text-slate-400">
         <span v-if="distance != null" class="mr-2 normal-case tracking-normal text-accent-cyan">
           {{ formatDistance(distance) }}
         </span>

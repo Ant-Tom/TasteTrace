@@ -1,6 +1,8 @@
 .env
 node_modules/
 frontend/dist/
+frontend/.nuxt/
+frontend/.output/
 backend/target/
 *.tsbuildinfo
 .DS_Store

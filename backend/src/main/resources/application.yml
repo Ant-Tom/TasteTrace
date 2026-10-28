@@ -1,6 +1,10 @@
 spring:
   application:
     name: tastetrace-backend
+  threads:
+    virtual:
+      # Java 21 virtual threads: blocking JDBC/MinIO calls no longer pin a platform thread each.
+      enabled: true
   servlet:
     multipart:
       max-file-size: 5MB
@@ -29,6 +33,10 @@ spring:
 
 server:
   port: 8080
+  compression:
+    enabled: true
+    mime-types: application/json,application/problem+json
+    min-response-size: 1KB
 
 app:
   cors:

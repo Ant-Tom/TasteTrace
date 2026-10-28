@@ -1,5 +1,7 @@
 package com.tastetrace.establishments;
 
+import org.springframework.http.CacheControl;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,9 +19,15 @@ public class EstablishmentsController {
         this.establishmentService = establishmentService;
     }
 
+    /**
+     * no-cache + ETag (see WebConfig): the browser keeps the list and revalidates it,
+     * getting an empty 304 instead of the full payload when nothing changed.
+     */
     @GetMapping
-    public List<EstablishmentDto> list() {
-        return establishmentService.list();
+    public ResponseEntity<List<EstablishmentDto>> list() {
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.noCache())
+                .body(establishmentService.list());
     }
 
     @GetMapping("/{id}")

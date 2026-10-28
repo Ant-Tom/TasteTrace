@@ -9,6 +9,7 @@ import com.tastetrace.review.dto.ReviewReactionStatsDto;
 import com.tastetrace.review.dto.UpdateReviewRequest;
 import com.tastetrace.user.User;
 import com.tastetrace.user.UserRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +29,7 @@ public class ReviewService {
     private final UserRepository userRepository;
     private final ReviewPhotoService reviewPhotoService;
     private final ReviewReactionService reviewReactionService;
+    private final ApplicationEventPublisher eventPublisher;
     private final int editWindowHours;
 
     public ReviewService(
@@ -36,6 +38,7 @@ public class ReviewService {
             UserRepository userRepository,
             ReviewPhotoService reviewPhotoService,
             ReviewReactionService reviewReactionService,
+            ApplicationEventPublisher eventPublisher,
             AppProperties appProperties
     ) {
         this.reviewRepository = reviewRepository;
@@ -43,6 +46,7 @@ public class ReviewService {
         this.userRepository = userRepository;
         this.reviewPhotoService = reviewPhotoService;
         this.reviewReactionService = reviewReactionService;
+        this.eventPublisher = eventPublisher;
         this.editWindowHours = appProperties.review().editWindowHours();
     }
 
@@ -75,6 +79,7 @@ public class ReviewService {
         review.setRating(request.rating());
         review.setText(request.text().trim());
         reviewRepository.save(review);
+        eventPublisher.publishEvent(new ReviewChangedEvent(establishmentId));
 
         return toDto(review, userId, Collections.emptyList(), null);
     }
@@ -94,6 +99,7 @@ public class ReviewService {
         review.setRating(request.rating());
         review.setText(request.text().trim());
         review.setUpdatedAt(Instant.now());
+        eventPublisher.publishEvent(new ReviewChangedEvent(review.getEstablishment().getId()));
         return toDto(
                 review,
                 userId,

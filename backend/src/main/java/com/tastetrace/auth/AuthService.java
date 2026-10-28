@@ -9,6 +9,7 @@ import com.tastetrace.user.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
@@ -18,17 +19,20 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final RegistrationRateLimiter rateLimiter;
+    private final RefreshTokenService refreshTokenService;
 
     public AuthService(
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
             JwtService jwtService,
-            RegistrationRateLimiter rateLimiter
+            RegistrationRateLimiter rateLimiter,
+            RefreshTokenService refreshTokenService
     ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.rateLimiter = rateLimiter;
+        this.refreshTokenService = refreshTokenService;
     }
 
     public AuthResponse register(RegisterRequest request, String clientIp) {
@@ -62,6 +66,17 @@ public class AuthService {
         return buildAuthResponse(user);
     }
 
+    /** One transaction: the old token is consumed only if the new pair is issued. */
+    @Transactional(noRollbackFor = ResponseStatusException.class)
+    public AuthResponse refresh(String refreshToken) {
+        User user = refreshTokenService.consume(refreshToken);
+        return buildAuthResponse(user);
+    }
+
+    public void logout(String refreshToken) {
+        refreshTokenService.revoke(refreshToken);
+    }
+
     public UserResponse getUser(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
@@ -70,7 +85,8 @@ public class AuthService {
 
     private AuthResponse buildAuthResponse(User user) {
         String token = jwtService.createAccessToken(user.getId(), user.getEmail());
-        return new AuthResponse(token, toUserResponse(user));
+        String refreshToken = refreshTokenService.issue(user);
+        return new AuthResponse(token, refreshToken, toUserResponse(user));
     }
 
     private UserResponse toUserResponse(User user) {

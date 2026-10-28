@@ -27,6 +27,9 @@ public class ReviewPhoto {
     @Column(name = "object_key", nullable = false, length = 512)
     private String objectKey;
 
+    @Column(name = "thumb_object_key", length = 512)
+    private String thumbObjectKey;
+
     @Column(name = "content_type", nullable = false, length = 100)
     private String contentType;
 
@@ -58,6 +61,14 @@ public class ReviewPhoto {
 
     public void setObjectKey(String objectKey) {
         this.objectKey = objectKey;
+    }
+
+    public String getThumbObjectKey() {
+        return thumbObjectKey;
+    }
+
+    public void setThumbObjectKey(String thumbObjectKey) {
+        this.thumbObjectKey = thumbObjectKey;
     }
 
     public String getContentType() {

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# TasteTrace install on Ubuntu VPS (alongside other apps like OpenClaw).
-# Usage: PUBLIC_HOST=195.133.40.122 ./deploy/install.sh
+# TasteTrace install on Ubuntu VPS.
+# Usage: PUBLIC_HOST=203.0.113.10 ./deploy/install.sh
 
 INSTALL_DIR="${INSTALL_DIR:-/opt/tastetrace}"
 REPO="${REPO:-https://github.com/Ant-Tom/TasteTrace.git}"
@@ -54,13 +54,10 @@ MINIO_BUCKET_REVIEWS=review-photos
 
 BACKEND_PORT=8080
 FRONTEND_PORT=5173
-AI_SERVICE_PORT=8000
 
 JWT_SECRET=${JWT_SECRET}
 JWT_ACCESS_EXPIRATION_MINUTES=30
 JWT_REFRESH_EXPIRATION_DAYS=14
-
-AI_MODEL_NAME=food-photo-classifier-v1
 
 PUBLIC_API_URL=http://${PUBLIC_HOST}:8080
 CORS_ALLOWED_ORIGINS=http://${PUBLIC_HOST}:5173
@@ -70,7 +67,7 @@ fi
 echo "==> Checking port conflicts..."
 for port in 5173 8080; do
   if ss -tln | grep -q ":${port} "; then
-    echo "WARNING: port ${port} already in use (OpenClaw or other app?)"
+    echo "WARNING: port ${port} already in use"
     ss -tlnp | grep ":${port} " || true
   fi
 done

@@ -11,9 +11,6 @@ services:
   minio:
     ports: !reset []
 
-  ai-service:
-    ports: !reset []
-
   backend:
     environment:
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}

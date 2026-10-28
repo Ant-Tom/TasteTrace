@@ -18,7 +18,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
             """)
     List<Review> findByEstablishmentIdOrderByCreatedAtDesc(Long establishmentId);
 
-    List<Review> findByUserIdOrderByCreatedAtDesc(Long userId);
 
     @Query("""
             SELECT AVG(r.rating), COUNT(r)

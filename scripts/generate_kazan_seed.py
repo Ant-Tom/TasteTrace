@@ -22,8 +22,8 @@ def coords(name: str, addr: str) -> tuple[float, float]:
 
 
 def main() -> None:
-    src = Path(sys.argv[1] if len(sys.argv) > 1 else "backend/src/main/resources/data/cafes_kazan.json")
-    cache_path = Path("backend/src/main/resources/data/geocode_cache.json")
+    src = Path(sys.argv[1] if len(sys.argv) > 1 else "scripts/data/cafes_kazan.json")
+    cache_path = Path("scripts/data/geocode_cache.json")
     out = Path(
         sys.argv[2]
         if len(sys.argv) > 2

@@ -1,34 +1,36 @@
-# Деплой TasteTrace на VPS (Timeweb)
+# Деплой TasteTrace на VPS
 
 ## Требования
 
 - Ubuntu VPS, 4 GB RAM+
 - Docker + Git
-- Порты **5173** (фронт) и **8080** (API) свободны или открыты в файрволе Timeweb
+- Порты **5173** (фронт) и **8080** (API) свободны или открыты в файрволе
 
 ## Быстрая установка
 
 ```bash
-ssh root@195.133.40.122
+ssh root@<IP-сервера>
 
-export PUBLIC_HOST=195.133.40.122   # или твой домен
+export PUBLIC_HOST=<IP-сервера или домен>
 git clone https://github.com/Ant-Tom/TasteTrace.git /opt/tastetrace
 cd /opt/tastetrace
 chmod +x deploy/install.sh
 ./deploy/install.sh
 ```
 
-## Файрвол Timeweb
+Скрипт сам создаст `.env` со случайными паролями и секретом JWT.
 
-В панели сервера → **Сеть / Firewall** → открыть входящие TCP **5173**, **8080**.
+## Файрвол
 
-## Ссылка для теста
+В панели хостинга открыть входящие TCP **5173** и **8080**.
 
-`http://195.133.40.122:5173` или `http://6946409-zr912107.twc1.net:5173`
+## Проверка
 
-## OpenClaw
+Сайт: `http://<PUBLIC_HOST>:5173`, API: `http://<PUBLIC_HOST>:8080/api/establishments`.
 
-Проект ставится в `/opt/tastetrace` с именем compose `tastetrace` — не трогает другие контейнеры.
+## Соседние проекты
+
+Проект ставится в `/opt/tastetrace` с именем compose `tastetrace` и не трогает другие контейнеры на сервере.
 
 ## Обновление
 

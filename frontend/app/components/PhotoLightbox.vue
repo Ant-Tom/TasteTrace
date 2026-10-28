@@ -3,6 +3,8 @@ const { state, close, step } = useLightbox();
 const resolvePhotoUrl = useResolvePhotoUrl();
 
 const closeButton = ref<HTMLButtonElement | null>(null);
+const dialogEl = ref<HTMLElement | null>(null);
+useFocusTrap(dialogEl, computed(() => state.value.open));
 const current = computed(() => state.value.photos[state.value.index]);
 const hasMany = computed(() => state.value.photos.length > 1);
 
@@ -46,6 +48,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKeydown));
   <Teleport to="body">
     <div
       v-if="state.open && current"
+      ref="dialogEl"
       class="fixed inset-0 z-[60] flex flex-col bg-black/90 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"

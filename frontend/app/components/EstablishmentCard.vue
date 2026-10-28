@@ -46,7 +46,7 @@ const accent = computed(() => cuisineColor(props.item.cuisine));
         <span v-if="distance != null" class="mr-2 normal-case tracking-normal text-accent-cyan">
           {{ formatDistance(distance) }}
         </span>
-        {{ item.reviewCount > 0 ? `${item.reviewCount} отз.` : "Открыть" }}
+        {{ item.reviewCount > 0 ? reviewsLabel(item.reviewCount) : "Открыть" }}
       </span>
     </div>
   </NuxtLink>

@@ -14,6 +14,7 @@ import maplibreWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 import type { Feature, FeatureCollection, Point } from "geojson";
 import type { Establishment } from "~/types/establishment";
 import type { UserLocation } from "~/composables/useUserLocation";
+import type { MapBounds } from "~/composables/useMapArea";
 
 const props = defineProps<{
   items: Establishment[];
@@ -22,7 +23,7 @@ const props = defineProps<{
   filtersActive: boolean;
 }>();
 
-const emit = defineEmits<{ select: [id: number] }>();
+const emit = defineEmits<{ select: [id: number]; userMove: [bounds: MapBounds] }>();
 
 setWorkerUrl(maplibreWorkerUrl);
 
@@ -275,6 +276,18 @@ onMounted(async () => {
     syncPlaces();
     syncUserLocation();
     if (props.filtersActive) fitToItems();
+  });
+
+  // Только движения пользователя (у программных flyTo/fitBounds нет originalEvent).
+  m.on("moveend", (event) => {
+    if (!("originalEvent" in event) || !event.originalEvent) return;
+    const bounds = m.getBounds();
+    emit("userMove", {
+      west: bounds.getWest(),
+      south: bounds.getSouth(),
+      east: bounds.getEast(),
+      north: bounds.getNorth()
+    });
   });
 
   resizeObserver = new ResizeObserver(() => m.resize());

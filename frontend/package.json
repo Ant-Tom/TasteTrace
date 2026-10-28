@@ -11,6 +11,7 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@nuxt/fonts": "^1.2.0",
     "@pinia/nuxt": "^1.0.3",
     "maplibre-gl": "^6.16.0",
     "nuxt": "^4.5.2",

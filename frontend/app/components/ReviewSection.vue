@@ -81,8 +81,8 @@ const existingPhotoCount = computed(() => editingReview.value?.photoUrls.length 
 const totalPhotoCount = computed(() => existingPhotoCount.value + pendingPhotos.value.length);
 
 const textHint = computed(() => getTextHint(text.value));
-const photoHint = computed(() => getPhotoHint(text.value, totalPhotoCount.value));
-const showPhotoPicker = computed(() => canAddPhotos(text.value) && totalPhotoCount.value < MAX_PHOTOS);
+const photoHint = computed(() => getPhotoHint(totalPhotoCount.value));
+const showPhotoPicker = computed(() => totalPhotoCount.value < MAX_PHOTOS);
 
 async function uploadPendingPhotos(reviewId: number) {
   if (pendingPhotos.value.length === 0) return;
@@ -260,7 +260,7 @@ async function vote(review: Review, value: ReviewVote) {
           <span class="ml-auto shrink-0 text-slate-500">{{ text.length }}/2000</span>
         </div>
 
-        <div v-if="showPhotoPicker || totalPhotoCount > 0" class="space-y-2">
+        <div class="space-y-2">
           <input
             ref="fileInput"
             type="file"

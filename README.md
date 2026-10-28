@@ -53,6 +53,7 @@ mvn test
 | `PUBLIC_API_URL` | Адрес API, который видит браузер. |
 | `CORS_ALLOWED_ORIGINS` | Адрес сайта, которому разрешено обращаться к API. |
 | `TRUSTED_PROXIES` | IP обратного прокси перед бэкендом; без прокси оставить пустым. |
+| `NUXT_PUBLIC_SITE_URL` | Публичный адрес сайта для sitemap, канонических ссылок и превью (в продакшене ставится сам из `DOMAIN`). |
 | `NUXT_PUBLIC_MAP_STYLE_URL` | Стиль карты (по умолчанию тёмные тайлы OpenFreeMap). |
 
 Полный список — в [.env.example](.env.example).

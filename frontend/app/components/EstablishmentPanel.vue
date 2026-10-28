@@ -5,7 +5,7 @@ const props = defineProps<{ establishment: Establishment }>();
 
 const ratingLabel = computed(() =>
   props.establishment.reviewCount > 0
-    ? `${props.establishment.rating.toFixed(1)} (${props.establishment.reviewCount})`
+    ? `${props.establishment.rating.toFixed(1)} · ${reviewsLabel(props.establishment.reviewCount)}`
     : "нет отзывов"
 );
 
@@ -15,6 +15,28 @@ const routeUrl = computed(
 );
 
 const authModal = useAuthModal();
+
+// На телефоне — системное меню «Поделиться», на компьютере — копирование ссылки.
+const shareStatus = ref<string | null>(null);
+let shareStatusTimer: ReturnType<typeof setTimeout> | undefined;
+
+async function share() {
+  const url = `${window.location.origin}/place/${props.establishment.id}`;
+  const title = props.establishment.name;
+  try {
+    if (navigator.share) {
+      await navigator.share({ title, text: `${title} — «Где поесть»`, url });
+      return;
+    }
+    await navigator.clipboard.writeText(url);
+    shareStatus.value = "Ссылка скопирована";
+  } catch (error) {
+    if ((error as DOMException).name === "AbortError") return;
+    shareStatus.value = "Не удалось поделиться";
+  }
+  clearTimeout(shareStatusTimer);
+  shareStatusTimer = setTimeout(() => (shareStatus.value = null), 2500);
+}
 
 const route = useRoute();
 const { location: userLocation } = useUserLocation();
@@ -38,7 +60,10 @@ function onKeydown(event: KeyboardEvent) {
 }
 
 onMounted(() => window.addEventListener("keydown", onKeydown));
-onBeforeUnmount(() => window.removeEventListener("keydown", onKeydown));
+onBeforeUnmount(() => {
+  window.removeEventListener("keydown", onKeydown);
+  clearTimeout(shareStatusTimer);
+});
 </script>
 
 <template>
@@ -64,6 +89,14 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKeydown));
           >
             Маршрут
           </a>
+          <button
+            type="button"
+            class="text-xs text-accent-cyan underline hover:text-accent-cyan/80"
+            @click="share"
+          >
+            Поделиться
+          </button>
+          <span v-if="shareStatus" class="text-xs text-slate-300" role="status">{{ shareStatus }}</span>
         </div>
       </div>
       <button

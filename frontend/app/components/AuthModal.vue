@@ -14,6 +14,7 @@ const website = ref("");
 const error = ref<string | null>(null);
 const loading = ref(false);
 const dialog = ref<HTMLElement | null>(null);
+useFocusTrap(dialog, computed(() => state.value.open));
 
 watch(
   () => state.value.open,

@@ -7,6 +7,13 @@ const { query, cuisine, minRating, sortByDistance, cuisines, distances, filtered
   useEstablishmentFilters(data);
 const selectedId = useSelectedEstablishmentId();
 const { location: userLocation } = useUserLocation();
+const { area, pending: pendingArea, onUserMove, applyPending, clearArea } = useMapArea();
+
+// Карта показывает всё найденное, а список можно сузить до видимой области.
+const listItems = computed(() => {
+  const bounds = area.value;
+  return bounds ? filtered.value.filter((item) => isInBounds(item, bounds)) : filtered.value;
+});
 
 const filtersActive = computed(() => !!query.value || cuisine.value !== ALL_CUISINES || minRating.value > 0);
 
@@ -31,6 +38,7 @@ function select(id: number) {
           :user-location="userLocation"
           :filters-active="filtersActive"
           @select="select"
+          @user-move="onUserMove"
         />
         <template #fallback>
           <div class="absolute inset-0 flex items-center justify-center bg-surface text-sm text-slate-400">
@@ -38,7 +46,15 @@ function select(id: number) {
           </div>
         </template>
       </ClientOnly>
-      <AppHeader :total-count="data.length" :visible-count="filtered.length" :hide-on-mobile="selectedId != null" />
+      <AppHeader :total-count="data.length" :visible-count="listItems.length" :hide-on-mobile="selectedId != null" />
+      <button
+        v-if="pendingArea"
+        type="button"
+        class="absolute left-1/2 top-[76px] z-20 -translate-x-1/2 whitespace-nowrap rounded-full bg-surface-raised/95 px-4 py-2 text-sm font-medium text-accent-cyan shadow-panel ring-1 ring-accent-cyan/40 backdrop-blur transition hover:bg-surface-raised md:top-28"
+        @click="applyPending"
+      >
+        Искать в этой области
+      </button>
       <slot />
     </div>
 
@@ -48,14 +64,16 @@ function select(id: number) {
         v-model:cuisine="cuisine"
         v-model:min-rating="minRating"
         v-model:sort-by-distance="sortByDistance"
-        :items="filtered"
+        :items="listItems"
         :total-count="data.length"
+        :area-active="area != null"
         :cuisines="cuisines"
         :distances="distances"
         :selected-id="selectedId"
         :is-loading="isLoading"
         :is-error="isError"
         @reset="resetFilters"
+        @clear-area="clearArea"
       />
     </ListSheet>
 

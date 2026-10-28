@@ -89,6 +89,8 @@ export function useEstablishmentFilters(data: Ref<Establishment[]>) {
     return result;
   });
 
+  const cityAverage = computed(() => cityAverageRating(data.value));
+
   const filtered = computed(() => {
     const normalizedQuery = query.value.trim().toLowerCase();
     const byDistance = sortByDistance.value && distances.value.size > 0;
@@ -110,7 +112,10 @@ export function useEstablishmentFilters(data: Ref<Establishment[]>) {
           const delta = (distances.value.get(a.id) ?? Infinity) - (distances.value.get(b.id) ?? Infinity);
           if (delta !== 0) return delta;
         }
-        return b.rating - a.rating || a.name.localeCompare(b.name, "ru");
+        // Места с отзывами — выше, между собой по байесовскому рейтингу; без отзывов — по алфавиту.
+        if ((a.reviewCount > 0) !== (b.reviewCount > 0)) return a.reviewCount > 0 ? -1 : 1;
+        const scoreDelta = rankingScore(b, cityAverage.value) - rankingScore(a, cityAverage.value);
+        return scoreDelta || a.name.localeCompare(b.name, "ru");
       });
   });
 

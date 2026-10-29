@@ -1,7 +1,7 @@
 export default defineNuxtConfig({
   compatibilityDate: "2026-10-01",
   devtools: { enabled: false },
-  modules: ["@nuxtjs/tailwindcss", "@pinia/nuxt"],
+  modules: ["@nuxtjs/tailwindcss", "@pinia/nuxt", "@nuxt/fonts"],
   css: ["~/assets/css/main.css"],
 
   runtimeConfig: {
@@ -10,6 +10,9 @@ export default defineNuxtConfig({
     apiUrlServer: "",
     public: {
       apiUrl: "http://localhost:8080",
+      // Публичный адрес сайта для sitemap, канонических ссылок и превью (https://домен).
+      // Пустой — берётся из запроса.
+      siteUrl: "",
       // Векторные тайлы OpenFreeMap: бесплатно, без ключа и без лимитов на продакшен-трафик.
       mapStyleUrl: "https://tiles.openfreemap.org/styles/dark"
     }
@@ -29,14 +32,18 @@ export default defineNuxtConfig({
       ],
       link: [
         { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
-        { rel: "preconnect", href: "https://tiles.openfreemap.org", crossorigin: "" },
-        { rel: "preconnect", href: "https://fonts.googleapis.com" },
-        { rel: "preconnect", href: "https://fonts.gstatic.com", crossorigin: "" },
-        {
-          rel: "stylesheet",
-          href: "https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Unbounded:wght@500;600;700&display=swap"
-        }
+        { rel: "preconnect", href: "https://tiles.openfreemap.org", crossorigin: "" }
       ]
+    }
+  },
+
+  // Шрифты скачиваются при сборке и отдаются с нашего домена: быстрее (нет запроса к Google),
+  // работает при сбоях Google Fonts и не передаёт Google адреса посетителей.
+  fonts: {
+    defaults: {
+      weights: [400, 500, 600, 700],
+      styles: ["normal", "italic"],
+      subsets: ["cyrillic", "latin"]
     }
   },
 

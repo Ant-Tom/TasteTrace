@@ -41,6 +41,7 @@ services:
     mem_limit: 384m
     environment:
       NUXT_PUBLIC_API_URL: https://${DOMAIN}
+      NUXT_PUBLIC_SITE_URL: https://${DOMAIN}
 
 networks:
   default:

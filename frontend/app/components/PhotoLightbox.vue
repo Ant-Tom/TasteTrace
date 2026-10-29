@@ -3,6 +3,8 @@ const { state, close, step } = useLightbox();
 const resolvePhotoUrl = useResolvePhotoUrl();
 
 const closeButton = ref<HTMLButtonElement | null>(null);
+const dialogEl = ref<HTMLElement | null>(null);
+useFocusTrap(dialogEl, computed(() => state.value.open));
 const current = computed(() => state.value.photos[state.value.index]);
 const hasMany = computed(() => state.value.photos.length > 1);
 
@@ -46,7 +48,8 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKeydown));
   <Teleport to="body">
     <div
       v-if="state.open && current"
-      class="fixed inset-0 z-[60] flex flex-col bg-black/90 backdrop-blur-sm"
+      ref="dialogEl"
+      class="fixed inset-0 z-[60] flex flex-col bg-black/90 backdrop-blur-sm motion-safe:animate-fade-in"
       role="dialog"
       aria-modal="true"
       :aria-label="state.caption || 'Фото'"
@@ -82,7 +85,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKeydown));
           :key="current"
           :src="resolvePhotoUrl(current)"
           :alt="state.caption ? `Фото: ${state.caption}` : 'Фото из отзыва'"
-          class="max-h-full max-w-full select-none rounded-lg object-contain shadow-panel"
+          class="max-h-full max-w-full select-none rounded-lg object-contain shadow-panel motion-safe:animate-dialog-in"
           draggable="false"
         >
         <button

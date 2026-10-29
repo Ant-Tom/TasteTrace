@@ -4,6 +4,8 @@ import type { Establishment } from "~/types/establishment";
 const props = defineProps<{
   items: Establishment[];
   totalCount: number;
+  /** Список сужен до области карты. */
+  areaActive: boolean;
   cuisines: string[];
   distances: Map<number, number>;
   selectedId: number | null;
@@ -11,7 +13,7 @@ const props = defineProps<{
   isError: boolean;
 }>();
 
-const emit = defineEmits<{ reset: [] }>();
+const emit = defineEmits<{ reset: []; clearArea: [] }>();
 
 const query = defineModel<string>("query", { required: true });
 const cuisine = defineModel<string>("cuisine", { required: true });
@@ -74,7 +76,16 @@ watch(
     />
 
     <div class="flex items-center justify-between px-4 py-2">
-      <p class="text-xs font-medium uppercase tracking-wider text-slate-400">
+      <button
+        v-if="areaActive"
+        type="button"
+        class="flex items-center gap-1.5 rounded-full border border-accent-cyan/50 bg-accent-cyan/10 px-3 py-1 text-xs font-medium text-accent-cyan hover:bg-accent-cyan/20"
+        aria-label="Показать весь город"
+        @click="emit('clearArea')"
+      >
+        В области карты <span aria-hidden="true">✕</span>
+      </button>
+      <p v-else class="text-xs font-medium uppercase tracking-wider text-slate-400">
         {{ sortByDistance ? "Ближайшие" : "Список · Казань" }}
       </p>
       <p class="text-xs text-slate-400">{{ items.length }} из {{ totalCount }}</p>
@@ -85,7 +96,7 @@ watch(
         <div
           v-for="i in 5"
           :key="i"
-          class="h-[72px] animate-pulse rounded-xl border border-border-subtle bg-surface-raised/60"
+          class="h-[72px] motion-safe:animate-pulse rounded-xl border border-border-subtle bg-surface-raised/60"
         />
       </div>
 
@@ -105,8 +116,13 @@ watch(
       </div>
 
       <ul v-else class="space-y-2">
-        <li v-for="item in visibleItems" :key="item.id" :data-id="item.id">
-          <EstablishmentCard :item="item" :selected="selectedId === item.id" :distance="distances.get(item.id)" />
+        <li v-for="(item, index) in visibleItems" :key="item.id" :data-id="item.id">
+          <EstablishmentCard
+            :item="item"
+            :index="index % PAGE_SIZE"
+            :selected="selectedId === item.id"
+            :distance="distances.get(item.id)"
+          />
         </li>
       </ul>
     </div>

@@ -1,7 +1,5 @@
 <script setup lang="ts">
 defineProps<{
-  totalCount: number;
-  visibleCount: number;
   /** На телефоне шапка прячется, пока открыта карточка заведения, — иначе карты почти не видно. */
   hideOnMobile?: boolean;
 }>();
@@ -35,19 +33,12 @@ function logout() {
         <p class="hidden text-xs text-slate-400 sm:block md:text-sm">в Казани</p>
       </NuxtLink>
       <div class="flex items-center gap-3">
-        <div class="hidden text-right sm:block" aria-live="polite">
-          <p class="text-xs uppercase tracking-widest text-slate-400">Заведений</p>
-          <p class="font-display text-sm font-semibold text-white">
-            <span class="text-accent-cyan">{{ visibleCount }}</span>
-            <span class="text-slate-400"> / {{ totalCount }}</span>
-          </p>
-        </div>
         <ClientOnly>
           <div v-if="auth.user" class="flex items-center gap-2">
             <span class="hidden text-sm text-slate-300 sm:inline">{{ auth.user.displayName }}</span>
             <button
               type="button"
-              class="rounded-lg border border-border-subtle px-3 py-1.5 text-xs text-slate-300 hover:text-white"
+              class="min-h-9 rounded-lg border border-border-subtle px-3.5 text-sm text-slate-300 transition hover:border-slate-500 hover:text-white"
               @click="logout"
             >
               Выйти
@@ -56,14 +47,14 @@ function logout() {
           <div v-else class="flex gap-2">
             <button
               type="button"
-              class="rounded-lg border border-border-subtle px-3 py-1.5 text-xs text-slate-300 hover:text-white"
+              class="min-h-9 rounded-lg border border-border-subtle px-3.5 text-sm text-slate-300 transition hover:border-slate-500 hover:text-white"
               @click="authModal.open('login')"
             >
               Вход
             </button>
             <button
               type="button"
-              class="rounded-lg bg-accent-cyan/20 px-3 py-1.5 text-xs font-medium text-accent-cyan hover:bg-accent-cyan/30"
+              class="min-h-9 rounded-lg bg-accent-cyan/20 px-3.5 text-sm font-medium text-accent-cyan transition hover:bg-accent-cyan/30"
               @click="authModal.open('register')"
             >
               Регистрация

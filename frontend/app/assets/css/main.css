@@ -89,3 +89,30 @@
 .maplibregl-ctrl-attrib-button {
   filter: invert(1);
 }
+
+/* Пульс вокруг выбранного места на карте (см. MapView.client.vue). */
+.map-pulse {
+  width: 30px;
+  height: 30px;
+  border: 2px solid rgba(34, 211, 238, 0.9);
+  border-radius: 9999px;
+  pointer-events: none;
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .map-pulse {
+    animation: map-pulse 1.8s ease-out infinite;
+  }
+}
+
+@keyframes map-pulse {
+  from {
+    transform: scale(0.9);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}

@@ -27,7 +27,6 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.UUID;
 
-import static io.zonky.test.db.AutoConfigureEmbeddedDatabase.DatabaseProvider.ZONKY;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -35,15 +34,15 @@ import static org.assertj.core.api.Assertions.assertThat;
  * PostgreSQL; photos go to a temporary directory.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureEmbeddedDatabase(provider = ZONKY)
+@AutoConfigureEmbeddedDatabase
 @ActiveProfiles("test")
 class ApiIntegrationTest {
 
     @LocalServerPort
     int port;
 
-    @Autowired
-    ObjectMapper json;
+    // Plain Jackson for reading responses: independent of the app's own JSON setup.
+    final ObjectMapper json = new ObjectMapper();
 
     @Autowired
     JdbcTemplate jdbc;
@@ -120,6 +119,8 @@ class ApiIntegrationTest {
                 token
         ));
         assertThat(created.statusCode()).isEqualTo(201);
+        // The frontend parses dates as ISO-8601 strings, not epoch numbers.
+        assertThat(json.readTree(created.body()).get("createdAt").isTextual()).isTrue();
 
         JsonNode fromList = ratingOf(establishmentId);
         assertThat(fromList.get("reviewCount").asInt()).isEqualTo(1);

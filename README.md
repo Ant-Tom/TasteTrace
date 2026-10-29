@@ -24,6 +24,23 @@ docker compose up -d --build
 
 Сайт — http://localhost:5173, API — http://localhost:8080/api/establishments.
 
+## Запуск без Docker
+
+Бэкенд вместе с настоящим PostgreSQL (база поднимается из встроенных бинарников, данные — в `backend/data/pg`):
+
+```bash
+cd backend
+mvn spring-boot:test-run -Dspring-boot.run.main-class=com.tastetrace.LocalDevApplication
+```
+
+Сайт — в соседнем терминале (порт 5173 разрешён в CORS по умолчанию):
+
+```bash
+cd frontend
+npm install && npm run build
+NUXT_PUBLIC_API_URL=http://localhost:8080 PORT=5173 node .output/server/index.mjs
+```
+
 ## Разработка без Docker для фронтенда
 
 ```bash
@@ -53,6 +70,7 @@ mvn test
 | `PUBLIC_API_URL` | Адрес API, который видит браузер. |
 | `CORS_ALLOWED_ORIGINS` | Адрес сайта, которому разрешено обращаться к API. |
 | `TRUSTED_PROXIES` | IP обратного прокси перед бэкендом; без прокси оставить пустым. |
+| `NUXT_PUBLIC_SITE_URL` | Публичный адрес сайта для sitemap, канонических ссылок и превью (в продакшене ставится сам из `DOMAIN`). |
 | `NUXT_PUBLIC_MAP_STYLE_URL` | Стиль карты (по умолчанию тёмные тайлы OpenFreeMap). |
 
 Полный список — в [.env.example](.env.example).

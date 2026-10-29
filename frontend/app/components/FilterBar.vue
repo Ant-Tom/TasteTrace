@@ -67,7 +67,7 @@ const chipClass = (active: boolean) =>
         type="button"
         :aria-pressed="sortByDistance"
         :disabled="locating"
-        class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition disabled:opacity-60"
+        class="inline-flex items-center gap-1.5 rounded-full border px-3 min-h-8 text-xs font-medium transition active:scale-95 disabled:opacity-60"
         :class="chipClass(sortByDistance)"
         @click="toggleNearby"
       >
@@ -79,7 +79,7 @@ const chipClass = (active: boolean) =>
       <button
         type="button"
         :aria-pressed="minRating === MIN_RATING_OPTION"
-        class="rounded-full border px-3 py-1.5 text-xs font-medium transition"
+        class="rounded-full border px-3 min-h-8 text-xs font-medium transition active:scale-95"
         :class="chipClass(minRating === MIN_RATING_OPTION)"
         @click="minRating = minRating === MIN_RATING_OPTION ? 0 : MIN_RATING_OPTION"
       >
@@ -94,7 +94,7 @@ const chipClass = (active: boolean) =>
         :key="item"
         type="button"
         :aria-pressed="cuisine === item"
-        class="shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition"
+        class="shrink-0 rounded-full border px-3 min-h-8 text-xs font-medium transition active:scale-95"
         :class="chipClass(cuisine === item)"
         @click="cuisine = item"
       >

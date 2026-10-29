@@ -4,3 +4,8 @@ app:
   registration:
     # Integration tests register many users from 127.0.0.1.
     rate-limit-per-hour: 1000
+zonky:
+  test:
+    database:
+      # Real PostgreSQL binaries started by the test itself, no Docker needed.
+      provider: zonky

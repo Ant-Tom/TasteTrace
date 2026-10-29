@@ -24,6 +24,23 @@ docker compose up -d --build
 
 Сайт — http://localhost:5173, API — http://localhost:8080/api/establishments.
 
+## Запуск без Docker
+
+Бэкенд вместе с настоящим PostgreSQL (база поднимается из встроенных бинарников, данные — в `backend/data/pg`):
+
+```bash
+cd backend
+mvn spring-boot:test-run -Dspring-boot.run.main-class=com.tastetrace.LocalDevApplication
+```
+
+Сайт — в соседнем терминале (порт 5173 разрешён в CORS по умолчанию):
+
+```bash
+cd frontend
+npm install && npm run build
+NUXT_PUBLIC_API_URL=http://localhost:8080 PORT=5173 node .output/server/index.mjs
+```
+
 ## Разработка без Docker для фронтенда
 
 ```bash
